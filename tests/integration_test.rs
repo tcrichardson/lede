@@ -18,6 +18,9 @@ fn test_rust_fixture_pretty() {
     assert!(stdout.contains("with_match"));
     assert!(stdout.contains("nested"));
     assert!(stdout.contains("<closure>"));
+    assert!(stdout.contains("Cognitive Load"));
+    assert!(stdout.contains("Halstead Vol"));
+    assert!(stdout.contains("Nesting"));
 }
 
 #[test]
@@ -38,6 +41,9 @@ fn test_python_fixture_json() {
     assert!(names.contains(&"with_if"));
     assert!(names.contains(&"with_match"));
     assert!(names.contains(&"nested"));
+    assert!(file.functions.iter().any(|f| f.cognitive_load > 0.0));
+    assert!(file.avg_cognitive_load > 0.0);
+    assert!(file.avg_halstead_volume >= 0.0);
 }
 
 #[test]
@@ -56,6 +62,9 @@ fn test_js_fixture_json() {
     let names: Vec<&str> = file.functions.iter().map(|f| f.name.as_str()).collect();
     assert!(names.contains(&"simple"));
     assert!(names.contains(&"withIf"));
+    assert!(file.functions.iter().any(|f| f.cognitive_load > 0.0));
+    assert!(file.avg_cognitive_load > 0.0);
+    assert!(file.avg_halstead_volume >= 0.0);
 }
 
 #[test]
