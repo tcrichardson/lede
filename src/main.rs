@@ -8,8 +8,8 @@ struct Args {
     /// Path to a file or directory to analyze
     path: std::path::PathBuf,
 
-    /// Output format: pretty or json
-    #[arg(short, long, default_value = "pretty")]
+    /// Output format: markdown, pretty, or json
+    #[arg(short, long, default_value = "markdown")]
     format: String,
 }
 
