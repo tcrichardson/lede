@@ -63,13 +63,13 @@ Options:
 
 ### Pretty format (default)
 
-```
+
 ### src/main.rs (total complexity: 5, total lines: 42, functions: 1, avg cognitive load: 12.34, max nesting: 2, avg Halstead volume: 45.60)
 
 | Function | Lines | Line Range | Complexity | Nesting | Halstead Vol | Difficulty | Cognitive Load |
 |----------|-------|------------|------------|---------|--------------|------------|----------------|
 | main     | 20    | 16-35      | 5          | 2       | 45.60        | 3.20       | 12.34          |
-```
+
 
 ### JSON format
 
