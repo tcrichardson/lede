@@ -12,6 +12,18 @@ const DECISION_KINDS: &[&str] = &[
     "except_clause",
     "conditional_expression",
 ];
+const OPERATOR_KINDS: &[&str] = &[
+    "+", "-", "*", "/", "%", "//", "**",
+    "==", "!=", "<", ">", "<=", ">=",
+    "and", "or", "not", "in", "is",
+    "=", "+=", "-=" , "*=", "/=", "%=", "//=", "**=",
+    "&", "|", "^", "<<", ">>", "~",
+    ".", ":", "->",
+    "return_statement", "yield", "await",
+];
+const OPERAND_KINDS: &[&str] = &[
+    "identifier", "integer", "float", "string", "true", "false", "none",
+];
 
 impl LanguageAnalyzer for PythonAnalyzer {
     fn can_analyze(&self, path: &std::path::Path) -> bool {
@@ -38,12 +50,21 @@ fn collect_functions(node: Node, source: &str, functions: &mut Vec<FunctionCompl
     if FUNCTION_KINDS.contains(&node.kind()) && node.child_count() > 0 {
         let name = extract_name(node, source);
         let complexity = 1 + count_decisions(node, source);
+        let nesting_depth = crate::cognitive::max_nesting_depth(node, DECISION_KINDS, FUNCTION_KINDS);
+        let (halstead_volume, halstead_difficulty) = crate::cognitive::halstead_metrics(
+            node, source, OPERATOR_KINDS, OPERAND_KINDS, FUNCTION_KINDS,
+        );
+        let cognitive_load = (halstead_volume / 100.0) + (nesting_depth as f64 * 5.0) + (halstead_difficulty / 10.0);
         functions.push(FunctionComplexity {
             name,
             line_start: node.start_position().row + 1,
             line_end: node.end_position().row + 1,
             lines: node.end_position().row - node.start_position().row + 1,
             complexity,
+            nesting_depth,
+            halstead_volume,
+            halstead_difficulty,
+            cognitive_load,
         });
     }
     let mut cursor = node.walk();
