@@ -1,13 +1,15 @@
 # Rubik
 
-A fast CLI tool that computes cyclomatic code complexity and cognitive load for Rust, Python, and JavaScript source files. It reports complexity and cognitive metrics per function (including closures and anonymous functions) and per file.
+A fast CLI tool that computes cyclomatic code complexity and Halstead metrics for Rust, Python, and JavaScript source files. It reports complexity and cognitive metrics per function (including closures and anonymous functions) and per file.
 
 ## Features
 
 - **Multi-language support:** Rust, Python, and JavaScript/JSX
 - **Cyclomatic complexity:** Classic decision-point counting per function and file
-- **Cognitive load scoring:** Combines nesting depth, Halstead metrics, and complexity into a single readability score
-- **Per-function & per-file reporting:** See complexity and cognitive metrics at every level
+- **Halstead metrics:** Volume, difficulty, effort, and estimated time per function
+- **Nesting depth analysis:** Maximum and average control-flow nesting per function and file
+- **Per-function & per-file reporting:** See complexity and Halstead metrics at every level
+- **Project-level summary:** Aggregated statistics across all analyzed files
 - **Closure inclusion:** Anonymous functions, lambdas, and arrow functions are counted separately
 - **Two output formats:** Pretty-printed tables (default) and JSON
 - **Directory scanning:** Analyze entire codebases recursively
@@ -63,41 +65,103 @@ Options:
 
 ### Pretty format (default)
 
+## Summary Statistics
 
-### src/main.rs (total complexity: 5, total lines: 42, functions: 1, avg cognitive load: 12.34, max nesting: 2, avg Halstead volume: 45.60)
+| Metric | Value |
+|--------|-------|
+| Files Analyzed | 3 |
+| Total Functions | 12 |
+| Total Lines | 450 |
+| Total Complexity | 34 |
+| Avg Complexity / Function | 2.83 |
+| Max Nesting Depth | 4 |
+| Avg Nesting Depth | 1.50 |
+| Avg Halstead Volume | 78.34 |
+| Avg Halstead Difficulty | 4.20 |
+| Avg Halstead Effort | 329.03 |
+| Avg Halstead Time | 18.28 |
 
-| Function | Lines | Line Range | Complexity | Nesting | Halstead Vol | Difficulty | Cognitive Load |
-|----------|-------|------------|------------|---------|--------------|------------|----------------|
-| main     | 20    | 16-35      | 5          | 2       | 45.60        | 3.20       | 12.34          |
+### src/main.rs
 
+#### File Summary
+
+| Metric | Value |
+|--------|-------|
+| Total Functions | 1 |
+| Total Lines | 42 |
+| Total Function Lines | 20 |
+| Total Complexity | 5 |
+| Avg Complexity / Function | 5.00 |
+| Max Complexity | 5 |
+| Max Nesting Depth | 2 |
+| Avg Nesting Depth | 2.00 |
+| Max Function Lines | 20 |
+| Avg Halstead Volume | 45.60 |
+| Max Halstead Volume | 45.60 |
+| Avg Halstead Difficulty | 3.20 |
+| Max Halstead Difficulty | 3.20 |
+| Avg Halstead Effort | 145.92 |
+| Max Halstead Effort | 145.92 |
+| Avg Halstead Time | 8.11 |
+| Max Halstead Time | 8.11 |
+
+| Function | Lines | Line Range | Complexity | Nesting | Halstead Vol | Difficulty | Halstead Effort | Halstead Time |
+|----------|-------|------------|------------|---------|--------------|------------|-----------------|---------------|
+| main | 20 | 16-35 | 5 | 2 | 45.60 | 3.20 | 145.92 | 8.11 |
 
 ### JSON format
 
 ```json
-[
-  {
-    "path": "src/main.rs",
-    "total_complexity": 5,
-    "total_lines": 42,
-    "function_count": 1,
-    "functions": [
-      {
-        "name": "main",
-        "line_start": 16,
-        "line_end": 35,
-        "lines": 20,
-        "complexity": 5,
-        "nesting_depth": 2,
-        "halstead_volume": 45.60,
-        "halstead_difficulty": 3.20,
-        "cognitive_load": 12.34
-      }
-    ],
-    "avg_cognitive_load": 12.34,
-    "max_nesting_depth": 2,
-    "avg_halstead_volume": 45.60
-  }
-]
+{
+  "summary": {
+    "files_analyzed": 3,
+    "total_functions": 12,
+    "total_lines": 450,
+    "total_complexity": 34,
+    "avg_complexity_per_function": 2.83,
+    "max_nesting_depth": 4,
+    "avg_nesting_depth": 1.50,
+    "avg_halstead_volume": 78.34,
+    "avg_halstead_difficulty": 4.20,
+    "avg_halstead_effort": 329.03,
+    "avg_halstead_time": 18.28
+  },
+  "files": [
+    {
+      "path": "src/main.rs",
+      "total_complexity": 5,
+      "total_lines": 42,
+      "function_count": 1,
+      "functions": [
+        {
+          "name": "main",
+          "line_start": 16,
+          "line_end": 35,
+          "lines": 20,
+          "complexity": 5,
+          "nesting_depth": 2,
+          "halstead_volume": 45.60,
+          "halstead_difficulty": 3.20,
+          "halstead_effort": 145.92,
+          "halstead_time": 8.11
+        }
+      ],
+      "max_nesting_depth": 2,
+      "avg_nesting_depth": 2.00,
+      "avg_halstead_volume": 45.60,
+      "avg_halstead_difficulty": 3.20,
+      "avg_halstead_effort": 145.92,
+      "avg_halstead_time": 8.11,
+      "max_complexity": 5,
+      "max_function_lines": 20,
+      "total_function_lines": 20,
+      "max_halstead_volume": 45.60,
+      "max_halstead_difficulty": 3.20,
+      "max_halstead_effort": 145.92,
+      "max_halstead_time": 8.11
+    }
+  ]
+}
 ```
 
 ## How Complexity is Calculated
@@ -118,9 +182,7 @@ For each function or closure, complexity starts at **1** and increments by **1**
 
 Per-file complexity is the sum of all function complexities in that file.
 
-## How Cognitive Load is Calculated
-
-Cognitive load is a composite score designed to estimate how difficult a function is to understand. It combines three metrics:
+## How Metrics are Calculated
 
 ### Nesting Depth
 The maximum depth of control-flow block nesting inside a function. For example, an `if` inside a `for` loop has a nesting depth of 2. Nested functions are not counted.
@@ -129,18 +191,23 @@ The maximum depth of control-flow block nesting inside a function. For example, 
 Derived from counting distinct operators and operands within each function:
 - **Volume** — `N × log₂(η)` where `N` is total tokens and `η` is distinct tokens
 - **Difficulty** — `(η₁ / 2) × (N₂ / η₂)` where `η₁` is distinct operators, `N₂` is total operands, and `η₂` is distinct operands
+- **Effort** — `Volume × Difficulty`
+- **Time** — `Effort / 18` (estimated time to implement, in seconds)
 
-### Cognitive Load Formula
-```
-cognitive_load = (halstead_volume / 100)
-               + (max_nesting_depth × 5)
-               + (halstead_difficulty / 10)
-```
-
-Per-file aggregates include:
-- **avg_cognitive_load** — average across all functions in the file
+### Per-File Aggregates
+- **avg_complexity_per_function** — average cyclomatic complexity across all functions
+- **max_complexity** — highest complexity found in any function
 - **max_nesting_depth** — deepest nesting found in any function
-- **avg_halstead_volume** — average Halstead volume across all functions
+- **avg_nesting_depth** — average nesting depth across all functions
+- **max_function_lines** — longest function in lines
+- **total_function_lines** — sum of all function line counts
+- **avg/max_halstead_volume** — average and maximum Halstead volume
+- **avg/max_halstead_difficulty** — average and maximum Halstead difficulty
+- **avg/max_halstead_effort** — average and maximum Halstead effort
+- **avg/max_halstead_time** — average and maximum estimated implementation time
+
+### Project-Level Summary
+When analyzing multiple files, the JSON and pretty output include a top-level summary aggregating statistics across all successfully analyzed files with functions.
 
 ## Supported File Extensions
 

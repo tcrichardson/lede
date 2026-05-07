@@ -54,7 +54,8 @@ fn collect_functions(node: Node, source: &str, functions: &mut Vec<FunctionCompl
         let (halstead_volume, halstead_difficulty) = crate::cognitive::halstead_metrics(
             node, source, OPERATOR_KINDS, OPERAND_KINDS, FUNCTION_KINDS,
         );
-        let cognitive_load = (halstead_volume / 100.0) + (nesting_depth as f64 * 5.0) + (halstead_difficulty / 10.0);
+        let halstead_effort = halstead_volume * halstead_difficulty;
+        let halstead_time = halstead_effort / 18.0;
         functions.push(FunctionComplexity {
             name,
             line_start: node.start_position().row + 1,
@@ -64,7 +65,8 @@ fn collect_functions(node: Node, source: &str, functions: &mut Vec<FunctionCompl
             nesting_depth,
             halstead_volume,
             halstead_difficulty,
-            cognitive_load,
+            halstead_effort,
+            halstead_time,
         });
     }
     let mut cursor = node.walk();
