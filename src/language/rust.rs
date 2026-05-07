@@ -1,0 +1,145 @@
+use crate::{FunctionComplexity, language::LanguageAnalyzer};
+use tree_sitter::{Node, Parser};
+
+pub struct RustAnalyzer;
+
+const FUNCTION_KINDS: &[&str] = &["function_item", "closure_expression"];
+const DECISION_KINDS: &[&str] = &[
+    "if_expression",
+    "if_let_expression",
+    "for_expression",
+    "while_expression",
+    "while_let_expression",
+    "loop_expression",
+    "try_expression",
+    "match_arm",
+];
+
+impl LanguageAnalyzer for RustAnalyzer {
+    fn can_analyze(&self, path: &std::path::Path) -> bool {
+        path.extension().map_or(false, |e| e == "rs")
+    }
+
+    fn analyze(&self, source: &str) -> Result<Vec<FunctionComplexity>, String> {
+        let mut parser = Parser::new();
+        let language: tree_sitter::Language = tree_sitter_rust::LANGUAGE.into();
+        parser
+            .set_language(&language)
+            .map_err(|e| format!("{e:?}"))?;
+        let tree = parser.parse(source, None).ok_or("Failed to parse Rust source")?;
+        let mut functions = Vec::new();
+        collect_functions(tree.root_node(), source, &mut functions);
+        Ok(functions)
+    }
+}
+
+fn collect_functions(node: Node, source: &str, functions: &mut Vec<FunctionComplexity>) {
+    if FUNCTION_KINDS.contains(&node.kind()) {
+        let name = extract_name(node, source);
+        let complexity = 1 + count_decisions(node, source);
+        functions.push(FunctionComplexity {
+            name,
+            line_start: node.start_position().row + 1,
+            line_end: node.end_position().row + 1,
+            complexity,
+        });
+    }
+    let mut cursor = node.walk();
+    for child in node.children(&mut cursor) {
+        collect_functions(child, source, functions);
+    }
+}
+
+fn count_decisions(node: Node, source: &str) -> u32 {
+    let mut count = 0;
+    let mut cursor = node.walk();
+    for child in node.children(&mut cursor) {
+        if FUNCTION_KINDS.contains(&child.kind()) {
+            continue;
+        }
+        if DECISION_KINDS.contains(&child.kind()) {
+            count += 1;
+        }
+        if crate::complexity::is_boolean_operator(child, source) {
+            count += 1;
+        }
+        count += count_decisions(child, source);
+    }
+    count
+}
+
+fn extract_name(node: Node, source: &str) -> String {
+    if node.kind() == "closure_expression" {
+        return format!("<closure>@line {}", node.start_position().row + 1);
+    }
+    let mut cursor = node.walk();
+    for child in node.children(&mut cursor) {
+        if child.kind() == "identifier" {
+            return source[child.start_byte()..child.end_byte()].to_string();
+        }
+    }
+    format!("<anon>@line {}", node.start_position().row + 1)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_simple_function() {
+        let source = "fn foo() { if true {} }";
+        let analyzer = RustAnalyzer;
+        let result = analyzer.analyze(source).unwrap();
+        assert_eq!(result.len(), 1);
+        assert_eq!(result[0].name, "foo");
+        assert_eq!(result[0].complexity, 2);
+    }
+
+    #[test]
+    fn test_if_else_if() {
+        let source = r#"
+fn bar() {
+    if x {}
+    else if y {}
+    else {}
+}
+"#;
+        let analyzer = RustAnalyzer;
+        let result = analyzer.analyze(source).unwrap();
+        assert_eq!(result[0].complexity, 3); // base 1 + if 1 + else-if 1
+    }
+
+    #[test]
+    fn test_match() {
+        let source = r#"
+fn baz() {
+    match x {
+        1 => {}
+        2 => {}
+        _ => {}
+    }
+}
+"#;
+        let analyzer = RustAnalyzer;
+        let result = analyzer.analyze(source).unwrap();
+        assert_eq!(result[0].complexity, 4); // base 1 + 3 arms
+    }
+
+    #[test]
+    fn test_closure() {
+        let source = "fn outer() { let f = |x| if x > 0 { 1 } else { 0 }; }";
+        let analyzer = RustAnalyzer;
+        let result = analyzer.analyze(source).unwrap();
+        assert_eq!(result.len(), 2);
+        let closure = result.iter().find(|f| f.name.starts_with("<closure>")).unwrap();
+        assert_eq!(closure.complexity, 2);
+    }
+
+    #[test]
+    fn test_boolean_ops() {
+        let source = "fn b() { a && b || c; }";
+        let analyzer = RustAnalyzer;
+        let result = analyzer.analyze(source).unwrap();
+        assert_eq!(result[0].complexity, 3); // base 1 + && 1 + || 1
+    }
+}
