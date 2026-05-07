@@ -1,7 +1,7 @@
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use std::path::Path;
 
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct FunctionComplexity {
     pub name: String,
     pub line_start: usize,
@@ -9,7 +9,7 @@ pub struct FunctionComplexity {
     pub complexity: u32,
 }
 
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct FileResult {
     pub path: std::path::PathBuf,
     pub total_complexity: u32,

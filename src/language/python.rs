@@ -25,6 +25,9 @@ impl LanguageAnalyzer for PythonAnalyzer {
             .set_language(&language)
             .map_err(|e| format!("{e:?}"))?;
         let tree = parser.parse(source, None).ok_or("Failed to parse Python source")?;
+        if tree.root_node().has_error() {
+            return Err("Failed to parse Python source".to_string());
+        }
         let mut functions = Vec::new();
         collect_functions(tree.root_node(), source, &mut functions);
         Ok(functions)
