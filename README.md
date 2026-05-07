@@ -62,12 +62,12 @@ Options:
 ### Pretty format (default)
 
 ```
-src/main.rs (total: 5)
-+----------+-------+------------+
-| Function | Lines | Complexity |
-+===============================+
-| main     | 16-35 | 5          |
-+----------+-------+------------+
+src/main.rs (total complexity: 5, total lines: 42, functions: 1)
++----------+-------+------------+------------+
+| Function | Lines | Line Range | Complexity |
++==========+=======+============+============+
+| main     | 20    | 16-35      | 5          |
++----------+-------+------------+------------+
 ```
 
 ### JSON format
@@ -77,11 +77,14 @@ src/main.rs (total: 5)
   {
     "path": "src/main.rs",
     "total_complexity": 5,
+    "total_lines": 42,
+    "function_count": 1,
     "functions": [
       {
         "name": "main",
         "line_start": 16,
         "line_end": 35,
+        "lines": 20,
         "complexity": 5
       }
     ]

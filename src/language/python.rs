@@ -42,6 +42,7 @@ fn collect_functions(node: Node, source: &str, functions: &mut Vec<FunctionCompl
             name,
             line_start: node.start_position().row + 1,
             line_end: node.end_position().row + 1,
+            lines: node.end_position().row - node.start_position().row + 1,
             complexity,
         });
     }

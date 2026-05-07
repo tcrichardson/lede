@@ -14,13 +14,14 @@ impl OutputFormatter for PrettyFormatter {
             if file.functions.is_empty() {
                 continue;
             }
-            out.push_str(&format!("{} (total: {})\n", file.path.display(), file.total_complexity));
+            out.push_str(&format!("{} (total complexity: {}, total lines: {}, functions: {})\n", file.path.display(), file.total_complexity, file.total_lines, file.function_count));
             let mut table = Table::new();
             table.set_content_arrangement(ContentArrangement::Dynamic);
-            table.set_header(vec!["Function", "Lines", "Complexity"]);
+            table.set_header(vec!["Function", "Lines", "Line Range", "Complexity"]);
             for func in &file.functions {
                 table.add_row(vec![
                     &func.name,
+                    &func.lines.to_string(),
                     &format!("{}-{}", func.line_start, func.line_end),
                     &func.complexity.to_string(),
                 ]);

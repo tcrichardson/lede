@@ -14,16 +14,19 @@ impl OutputFormatter for MarkdownFormatter {
                 continue;
             }
             out.push_str(&format!(
-                "### {} (total complexity: {})\n\n",
+                "### {} (total complexity: {}, total lines: {}, functions: {})\n\n",
                 file.path.display(),
-                file.total_complexity
+                file.total_complexity,
+                file.total_lines,
+                file.function_count
             ));
-            out.push_str("| Function | Lines | Complexity |\n");
-            out.push_str("|----------|-------|------------|\n");
+            out.push_str("| Function | Lines | Line Range | Complexity |\n");
+            out.push_str("|----------|-------|------------|------------|\n");
             for func in &file.functions {
                 out.push_str(&format!(
-                    "| {} | {}-{} | {} |\n",
+                    "| {} | {} | {}-{} | {} |\n",
                     func.name,
+                    func.lines,
                     func.line_start,
                     func.line_end,
                     func.complexity

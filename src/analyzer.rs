@@ -41,9 +41,13 @@ fn analyze_file(path: &Path) -> Result<FileResult, std::io::Error> {
             match analyzer.analyze(&source) {
                 Ok(functions) => {
                     let total = functions.iter().map(|f| f.complexity).sum();
+                    let total_lines = source.lines().count();
+                    let function_count = functions.len();
                     return Ok(FileResult {
                         path: path.to_path_buf(),
                         total_complexity: total,
+                        total_lines,
+                        function_count,
                         functions,
                         error: None,
                     });
@@ -52,6 +56,8 @@ fn analyze_file(path: &Path) -> Result<FileResult, std::io::Error> {
                     return Ok(FileResult {
                         path: path.to_path_buf(),
                         total_complexity: 0,
+                        total_lines: source.lines().count(),
+                        function_count: 0,
                         functions: Vec::new(),
                         error: Some(e),
                     });
@@ -64,6 +70,8 @@ fn analyze_file(path: &Path) -> Result<FileResult, std::io::Error> {
     Ok(FileResult {
         path: path.to_path_buf(),
         total_complexity: 0,
+        total_lines: source.lines().count(),
+        function_count: 0,
         functions: Vec::new(),
         error: None,
     })
