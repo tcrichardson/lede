@@ -21,6 +21,7 @@ pub struct FileResult {
 }
 
 pub mod analyzer;
+pub mod cognitive;
 pub mod complexity;
 pub mod language;
 pub mod output;
