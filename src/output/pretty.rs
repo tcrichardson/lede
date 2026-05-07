@@ -1,5 +1,5 @@
 use crate::{FileResult, output::OutputFormatter};
-use comfy_table::{Table, Column, ContentArrangement};
+use comfy_table::{Table, ContentArrangement};
 
 pub struct PrettyFormatter;
 

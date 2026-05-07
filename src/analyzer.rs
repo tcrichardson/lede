@@ -1,5 +1,5 @@
 use crate::{
-    FileResult, FunctionComplexity,
+    FileResult,
     language::{javascript::JavaScriptAnalyzer, python::PythonAnalyzer, rust::RustAnalyzer, LanguageAnalyzer},
 };
 use std::path::Path;
