@@ -73,6 +73,32 @@ fn test_js_fixture_json() {
 }
 
 #[test]
+fn test_c_fixture_json() {
+    let output = rubik()
+        .arg("tests/fixtures/c_sample.c")
+        .arg("--format")
+        .arg("json")
+        .output()
+        .expect("failed to run rubik");
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    let parsed: rubik::AnalysisOutput = serde_json::from_str(&stdout).expect("invalid JSON");
+    assert_eq!(parsed.files.len(), 1);
+    assert_eq!(parsed.summary.files_analyzed, 1);
+    let file = &parsed.files[0];
+    assert!(file.path.to_string_lossy().contains("c_sample.c"));
+    let names: Vec<&str> = file.functions.iter().map(|f| f.name.as_str()).collect();
+    assert!(names.contains(&"simple"));
+    assert!(names.contains(&"withIf"));
+    assert!(names.contains(&"withSwitch"));
+    assert!(names.contains(&"nested"));
+    assert!(file.functions.iter().any(|f| f.halstead_effort > 0.0));
+    assert!(file.avg_halstead_effort > 0.0);
+    assert!(file.avg_halstead_volume >= 0.0);
+    assert!(parsed.summary.total_functions > 0);
+    assert!(parsed.summary.total_lines > 0);
+}
+
+#[test]
 fn test_invalid_file_skips() {
     let output = rubik()
         .arg("tests/fixtures/invalid.py")
@@ -97,5 +123,6 @@ fn test_directory_scan() {
     assert!(paths.iter().any(|p| p.contains("rust_sample.rs")));
     assert!(paths.iter().any(|p| p.contains("python_sample.py")));
     assert!(paths.iter().any(|p| p.contains("js_sample.js")));
-    assert!(parsed.summary.files_analyzed >= 3);
+    assert!(paths.iter().any(|p| p.contains("c_sample.c")));
+    assert!(parsed.summary.files_analyzed >= 4);
 }
