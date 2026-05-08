@@ -1,5 +1,5 @@
 use crate::{
-    FileResult,
+    FileResult, FunctionComplexity,
     language::{c::CAnalyzer, javascript::JavaScriptAnalyzer, python::PythonAnalyzer, rust::RustAnalyzer, LanguageAnalyzer},
 };
 use std::path::Path;
@@ -36,106 +36,83 @@ pub fn analyze_path(path: &Path) -> Result<Vec<FileResult>, std::io::Error> {
 
 fn analyze_file(path: &Path) -> Result<FileResult, std::io::Error> {
     let source = std::fs::read_to_string(path)?;
+    let total_lines = source.lines().count();
 
     for analyzer in ANALYZERS {
         if analyzer.can_analyze(path) {
             match analyzer.analyze(&source) {
-                Ok(functions) => {
-                    let total = functions.iter().map(|f| f.complexity).sum();
-                    let total_lines = source.lines().count();
-                    let function_count = functions.len();
-                    let max_nesting_depth = functions.iter().map(|f| f.nesting_depth).max().unwrap_or(0);
-                    let avg_nesting_depth = if function_count > 0 {
-                        functions.iter().map(|f| f.nesting_depth as f64).sum::<f64>() / function_count as f64
-                    } else { 0.0 };
-                    let avg_halstead_volume = if function_count > 0 {
-                        functions.iter().map(|f| f.halstead_volume).sum::<f64>() / function_count as f64
-                    } else { 0.0 };
-                    let avg_halstead_difficulty = if function_count > 0 {
-                        functions.iter().map(|f| f.halstead_difficulty).sum::<f64>() / function_count as f64
-                    } else { 0.0 };
-                    let avg_halstead_effort = if function_count > 0 {
-                        functions.iter().map(|f| f.halstead_effort).sum::<f64>() / function_count as f64
-                    } else { 0.0 };
-                    let avg_halstead_time = if function_count > 0 {
-                        functions.iter().map(|f| f.halstead_time).sum::<f64>() / function_count as f64
-                    } else { 0.0 };
-                    let max_complexity = functions.iter().map(|f| f.complexity).max().unwrap_or(0);
-                    let max_function_lines = functions.iter().map(|f| f.lines).max().unwrap_or(0);
-                    let total_function_lines: usize = functions.iter().map(|f| f.lines).sum();
-                    let max_halstead_volume = functions.iter().map(|f| f.halstead_volume).fold(0.0_f64, f64::max);
-                    let max_halstead_difficulty = functions.iter().map(|f| f.halstead_difficulty).fold(0.0_f64, f64::max);
-                    let max_halstead_effort = functions.iter().map(|f| f.halstead_effort).fold(0.0_f64, f64::max);
-                    let max_halstead_time = functions.iter().map(|f| f.halstead_time).fold(0.0_f64, f64::max);
-                    return Ok(FileResult {
-                        path: path.to_path_buf(),
-                        total_complexity: total,
-                        total_lines,
-                        function_count,
-                        functions,
-                        error: None,
-                        max_nesting_depth,
-                        avg_nesting_depth,
-                        avg_halstead_volume,
-                        avg_halstead_difficulty,
-                        avg_halstead_effort,
-                        avg_halstead_time,
-                        max_complexity,
-                        max_function_lines,
-                        total_function_lines,
-                        max_halstead_volume,
-                        max_halstead_difficulty,
-                        max_halstead_effort,
-                        max_halstead_time,
-                    });
-                }
-                Err(e) => {
-                    return Ok(FileResult {
-                        path: path.to_path_buf(),
-                        total_complexity: 0,
-                        total_lines: source.lines().count(),
-                        function_count: 0,
-                        functions: Vec::new(),
-                        error: Some(e),
-                        max_nesting_depth: 0,
-                        avg_nesting_depth: 0.0,
-                        avg_halstead_volume: 0.0,
-                        avg_halstead_difficulty: 0.0,
-                        avg_halstead_effort: 0.0,
-                        avg_halstead_time: 0.0,
-                        max_complexity: 0,
-                        max_function_lines: 0,
-                        total_function_lines: 0,
-                        max_halstead_volume: 0.0,
-                        max_halstead_difficulty: 0.0,
-                        max_halstead_effort: 0.0,
-                        max_halstead_time: 0.0,
-                    });
-                }
+                Ok(functions) => return Ok(build_success_result(path, total_lines, functions)),
+                Err(e) => return Ok(build_error_result(path, total_lines, e)),
             }
         }
     }
 
-    // Unsupported extension — skip silently
-    Ok(FileResult {
+    Ok(build_empty_result(path, total_lines))
+}
+
+fn build_success_result(path: &Path, total_lines: usize, functions: Vec<FunctionComplexity>) -> FileResult {
+    let function_count = functions.len();
+    let total_complexity: u32 = functions.iter().map(|f| f.complexity).sum();
+    let total_function_lines: usize = functions.iter().map(|f| f.lines).sum();
+    let max_complexity = functions.iter().map(|f| f.complexity).max().unwrap_or(0);
+    let max_function_lines = functions.iter().map(|f| f.lines).max().unwrap_or(0);
+    let max_nesting_depth = functions.iter().map(|f| f.nesting_depth).max().unwrap_or(0);
+
+    let max_halstead_volume = functions.iter().map(|f| f.halstead_volume).fold(0.0_f64, f64::max);
+    let max_halstead_difficulty = functions.iter().map(|f| f.halstead_difficulty).fold(0.0_f64, f64::max);
+    let max_halstead_effort = functions.iter().map(|f| f.halstead_effort).fold(0.0_f64, f64::max);
+    let max_halstead_time = functions.iter().map(|f| f.halstead_time).fold(0.0_f64, f64::max);
+
+    let avg = |extractor: fn(&FunctionComplexity) -> f64| -> f64 {
+        if function_count == 0 {
+            0.0
+        } else {
+            functions.iter().map(extractor).sum::<f64>() / function_count as f64
+        }
+    };
+
+    let avg_nesting_depth = avg(|f| f.nesting_depth as f64);
+    let avg_halstead_volume = avg(|f| f.halstead_volume);
+    let avg_halstead_difficulty = avg(|f| f.halstead_difficulty);
+    let avg_halstead_effort = avg(|f| f.halstead_effort);
+    let avg_halstead_time = avg(|f| f.halstead_time);
+
+    FileResult {
         path: path.to_path_buf(),
-        total_complexity: 0,
-        total_lines: source.lines().count(),
-        function_count: 0,
-        functions: Vec::new(),
+        total_complexity,
+        total_lines,
+        function_count,
+        functions,
         error: None,
-        max_nesting_depth: 0,
-        avg_nesting_depth: 0.0,
-        avg_halstead_volume: 0.0,
-        avg_halstead_difficulty: 0.0,
-        avg_halstead_effort: 0.0,
-        avg_halstead_time: 0.0,
-        max_complexity: 0,
-        max_function_lines: 0,
-        total_function_lines: 0,
-        max_halstead_volume: 0.0,
-        max_halstead_difficulty: 0.0,
-        max_halstead_effort: 0.0,
-        max_halstead_time: 0.0,
-    })
+        max_nesting_depth,
+        avg_nesting_depth,
+        avg_halstead_volume,
+        avg_halstead_difficulty,
+        avg_halstead_effort,
+        avg_halstead_time,
+        max_complexity,
+        max_function_lines,
+        total_function_lines,
+        max_halstead_volume,
+        max_halstead_difficulty,
+        max_halstead_effort,
+        max_halstead_time,
+    }
+}
+
+fn build_error_result(path: &Path, total_lines: usize, error: String) -> FileResult {
+    FileResult {
+        path: path.to_path_buf(),
+        total_lines,
+        error: Some(error),
+        ..Default::default()
+    }
+}
+
+fn build_empty_result(path: &Path, total_lines: usize) -> FileResult {
+    FileResult {
+        path: path.to_path_buf(),
+        total_lines,
+        ..Default::default()
+    }
 }

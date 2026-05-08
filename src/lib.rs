@@ -38,6 +38,32 @@ pub struct FileResult {
     pub max_halstead_time: f64,
 }
 
+impl Default for FileResult {
+    fn default() -> Self {
+        Self {
+            path: std::path::PathBuf::new(),
+            total_complexity: 0,
+            total_lines: 0,
+            function_count: 0,
+            functions: Vec::new(),
+            error: None,
+            max_nesting_depth: 0,
+            avg_nesting_depth: 0.0,
+            avg_halstead_volume: 0.0,
+            avg_halstead_difficulty: 0.0,
+            avg_halstead_effort: 0.0,
+            avg_halstead_time: 0.0,
+            max_complexity: 0,
+            max_function_lines: 0,
+            total_function_lines: 0,
+            max_halstead_volume: 0.0,
+            max_halstead_difficulty: 0.0,
+            max_halstead_effort: 0.0,
+            max_halstead_time: 0.0,
+        }
+    }
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SummaryStatistics {
     pub files_analyzed: usize,
@@ -51,6 +77,24 @@ pub struct SummaryStatistics {
     pub avg_halstead_difficulty: f64,
     pub avg_halstead_effort: f64,
     pub avg_halstead_time: f64,
+}
+
+impl Default for SummaryStatistics {
+    fn default() -> Self {
+        Self {
+            files_analyzed: 0,
+            total_functions: 0,
+            total_lines: 0,
+            total_complexity: 0,
+            avg_complexity_per_function: 0.0,
+            max_nesting_depth: 0,
+            avg_nesting_depth: 0.0,
+            avg_halstead_volume: 0.0,
+            avg_halstead_difficulty: 0.0,
+            avg_halstead_effort: 0.0,
+            avg_halstead_time: 0.0,
+        }
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -67,19 +111,7 @@ impl SummaryStatistics {
             .collect();
 
         if successful.is_empty() {
-            return SummaryStatistics {
-                files_analyzed: 0,
-                total_functions: 0,
-                total_lines: 0,
-                total_complexity: 0,
-                avg_complexity_per_function: 0.0,
-                max_nesting_depth: 0,
-                avg_nesting_depth: 0.0,
-                avg_halstead_volume: 0.0,
-                avg_halstead_difficulty: 0.0,
-                avg_halstead_effort: 0.0,
-                avg_halstead_time: 0.0,
-            };
+            return SummaryStatistics::default();
         }
 
         let total_files = successful.len();

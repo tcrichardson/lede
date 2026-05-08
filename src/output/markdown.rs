@@ -1,4 +1,4 @@
-use crate::{FileResult, SummaryStatistics, output::OutputFormatter};
+use crate::{FileResult, FunctionComplexity, SummaryStatistics, output::OutputFormatter};
 
 pub struct MarkdownFormatter;
 
@@ -7,79 +7,113 @@ impl OutputFormatter for MarkdownFormatter {
         let mut out = String::new();
 
         let summary = SummaryStatistics::from_results(results);
-
         if summary.files_analyzed > 0 {
-            out.push_str("## Summary Statistics\n\n");
-            out.push_str("| Metric | Value |\n");
-            out.push_str("|--------|-------|\n");
-            out.push_str(&format!("| Files Analyzed | {} |\n", summary.files_analyzed));
-            out.push_str(&format!("| Total Functions | {} |\n", summary.total_functions));
-            out.push_str(&format!("| Total Lines | {} |\n", summary.total_lines));
-            out.push_str(&format!("| Total Complexity | {} |\n", summary.total_complexity));
-            out.push_str(&format!("| Avg Complexity / Function | {:.2} |\n", summary.avg_complexity_per_function));
-            out.push_str(&format!("| Max Nesting Depth | {} |\n", summary.max_nesting_depth));
-            out.push_str(&format!("| Avg Nesting Depth | {:.2} |\n", summary.avg_nesting_depth));
-            out.push_str(&format!("| Avg Halstead Volume | {:.2} |\n", summary.avg_halstead_volume));
-            out.push_str(&format!("| Avg Halstead Difficulty | {:.2} |\n", summary.avg_halstead_difficulty));
-            out.push_str(&format!("| Avg Halstead Effort | {:.2} |\n", summary.avg_halstead_effort));
-            out.push_str(&format!("| Avg Halstead Time | {:.2} |\n", summary.avg_halstead_time));
-            out.push('\n');
+            out.push_str(&format_summary(&summary));
         }
 
         for file in results {
-            if let Some(ref err) = file.error {
-                out.push_str(&format!("**{}**: ERROR: {}\n\n", file.path.display(), err));
-                continue;
-            }
-            if file.functions.is_empty() {
-                continue;
-            }
-
-            let fc = file.function_count;
-            let avg_complexity = if fc > 0 { file.total_complexity as f64 / fc as f64 } else { 0.0 };
-
-            out.push_str(&format!("### {}\n\n", file.path.display()));
-            out.push_str("#### File Summary\n\n");
-            out.push_str("| Metric | Value |\n");
-            out.push_str("|--------|-------|\n");
-            out.push_str(&format!("| Total Functions | {} |\n", fc));
-            out.push_str(&format!("| Total Lines | {} |\n", file.total_lines));
-            out.push_str(&format!("| Total Function Lines | {} |\n", file.total_function_lines));
-            out.push_str(&format!("| Total Complexity | {} |\n", file.total_complexity));
-            out.push_str(&format!("| Avg Complexity / Function | {:.2} |\n", avg_complexity));
-            out.push_str(&format!("| Max Complexity | {} |\n", file.max_complexity));
-            out.push_str(&format!("| Max Nesting Depth | {} |\n", file.max_nesting_depth));
-            out.push_str(&format!("| Avg Nesting Depth | {:.2} |\n", file.avg_nesting_depth));
-            out.push_str(&format!("| Max Function Lines | {} |\n", file.max_function_lines));
-            out.push_str(&format!("| Avg Halstead Volume | {:.2} |\n", file.avg_halstead_volume));
-            out.push_str(&format!("| Max Halstead Volume | {:.2} |\n", file.max_halstead_volume));
-            out.push_str(&format!("| Avg Halstead Difficulty | {:.2} |\n", file.avg_halstead_difficulty));
-            out.push_str(&format!("| Max Halstead Difficulty | {:.2} |\n", file.max_halstead_difficulty));
-            out.push_str(&format!("| Avg Halstead Effort | {:.2} |\n", file.avg_halstead_effort));
-            out.push_str(&format!("| Max Halstead Effort | {:.2} |\n", file.max_halstead_effort));
-            out.push_str(&format!("| Avg Halstead Time | {:.2} |\n", file.avg_halstead_time));
-            out.push_str(&format!("| Max Halstead Time | {:.2} |\n", file.max_halstead_time));
-            out.push('\n');
-
-            out.push_str("| Function | Lines | Line Range | Complexity | Nesting | Halstead Vol | Difficulty | Halstead Effort | Halstead Time |\n");
-            out.push_str("|----------|-------|------------|------------|---------|--------------|------------|-----------------|---------------|\n");
-            for func in &file.functions {
-                out.push_str(&format!(
-                    "| {} | {} | {}-{} | {} | {} | {:.2} | {:.2} | {:.2} | {:.2} |\n",
-                    func.name,
-                    func.lines,
-                    func.line_start,
-                    func.line_end,
-                    func.complexity,
-                    func.nesting_depth,
-                    func.halstead_volume,
-                    func.halstead_difficulty,
-                    func.halstead_effort,
-                    func.halstead_time
-                ));
-            }
-            out.push('\n');
+            out.push_str(&format_file(file));
         }
+
         out
     }
+}
+
+fn format_summary(summary: &SummaryStatistics) -> String {
+    let rows = vec![
+        metric_row("Files Analyzed", summary.files_analyzed),
+        metric_row("Total Functions", summary.total_functions),
+        metric_row("Total Lines", summary.total_lines),
+        metric_row("Total Complexity", summary.total_complexity),
+        metric_row_f64("Avg Complexity / Function", summary.avg_complexity_per_function, 2),
+        metric_row("Max Nesting Depth", summary.max_nesting_depth),
+        metric_row_f64("Avg Nesting Depth", summary.avg_nesting_depth, 2),
+        metric_row_f64("Avg Halstead Volume", summary.avg_halstead_volume, 2),
+        metric_row_f64("Avg Halstead Difficulty", summary.avg_halstead_difficulty, 2),
+        metric_row_f64("Avg Halstead Effort", summary.avg_halstead_effort, 2),
+        metric_row_f64("Avg Halstead Time", summary.avg_halstead_time, 2),
+    ];
+
+    let mut out = String::from("## Summary Statistics\n\n");
+    out.push_str("| Metric | Value |\n");
+    out.push_str("|--------|-------|\n");
+    for row in rows {
+        out.push_str(&row);
+    }
+    out.push('\n');
+    out
+}
+
+fn format_file(file: &FileResult) -> String {
+    if let Some(ref err) = file.error {
+        return format!("**{}**: ERROR: {}\n\n", file.path.display(), err);
+    }
+    if file.functions.is_empty() {
+        return String::new();
+    }
+
+    let fc = file.function_count;
+    let avg_complexity = if fc > 0 { file.total_complexity as f64 / fc as f64 } else { 0.0 };
+
+    let mut out = format!("### {}\n\n", file.path.display());
+    out.push_str("#### File Summary\n\n");
+    out.push_str("| Metric | Value |\n");
+    out.push_str("|--------|-------|\n");
+
+    let rows = vec![
+        metric_row("Total Functions", fc),
+        metric_row("Total Lines", file.total_lines),
+        metric_row("Total Function Lines", file.total_function_lines),
+        metric_row("Total Complexity", file.total_complexity),
+        metric_row_f64("Avg Complexity / Function", avg_complexity, 2),
+        metric_row("Max Complexity", file.max_complexity),
+        metric_row("Max Nesting Depth", file.max_nesting_depth),
+        metric_row_f64("Avg Nesting Depth", file.avg_nesting_depth, 2),
+        metric_row_f64("Max Function Lines", file.max_function_lines as f64, 2),
+        metric_row_f64("Avg Halstead Volume", file.avg_halstead_volume, 2),
+        metric_row_f64("Max Halstead Volume", file.max_halstead_volume, 2),
+        metric_row_f64("Avg Halstead Difficulty", file.avg_halstead_difficulty, 2),
+        metric_row_f64("Max Halstead Difficulty", file.max_halstead_difficulty, 2),
+        metric_row_f64("Avg Halstead Effort", file.avg_halstead_effort, 2),
+        metric_row_f64("Max Halstead Effort", file.max_halstead_effort, 2),
+        metric_row_f64("Avg Halstead Time", file.avg_halstead_time, 2),
+        metric_row_f64("Max Halstead Time", file.max_halstead_time, 2),
+    ];
+    for row in rows {
+        out.push_str(&row);
+    }
+    out.push('\n');
+
+    out.push_str("| Function | Lines | Line Range | Complexity | Nesting | Halstead Vol | Difficulty | Halstead Effort | Halstead Time |\n");
+    out.push_str("|----------|-------|------------|------------|---------|--------------|------------|-----------------|---------------|\n");
+    for func in &file.functions {
+        out.push_str(&format_function_row(func));
+    }
+    out.push('\n');
+
+    out
+}
+
+fn metric_row<T: std::fmt::Display>(name: &str, value: T) -> String {
+    format!("| {} | {} |\n", name, value)
+}
+
+fn metric_row_f64(name: &str, value: f64, precision: usize) -> String {
+    format!("| {} | {:.precision$} |\n", name, value)
+}
+
+fn format_function_row(func: &FunctionComplexity) -> String {
+    format!(
+        "| {} | {} | {}-{} | {} | {} | {:.2} | {:.2} | {:.2} | {:.2} |\n",
+        func.name,
+        func.lines,
+        func.line_start,
+        func.line_end,
+        func.complexity,
+        func.nesting_depth,
+        func.halstead_volume,
+        func.halstead_difficulty,
+        func.halstead_effort,
+        func.halstead_time
+    )
 }
