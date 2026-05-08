@@ -6,6 +6,7 @@ pub trait LanguageAnalyzer: Send + Sync {
     fn analyze(&self, source: &str) -> Result<Vec<FunctionComplexity>, String>;
 }
 
+pub mod c;
 pub mod javascript;
 pub mod python;
 pub mod rust;
