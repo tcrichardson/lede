@@ -1,4 +1,4 @@
-use crate::{FunctionComplexity, language::LanguageAnalyzer};
+use crate::{FunctionComplexity, language::{LanguageAnalyzer, LanguageConfig}};
 use tree_sitter::{Node, Parser};
 
 pub struct PythonAnalyzer;
@@ -49,8 +49,15 @@ impl LanguageAnalyzer for PythonAnalyzer {
 fn collect_functions(node: Node, source: &str, functions: &mut Vec<FunctionComplexity>) {
     crate::language::collect_functions(
         node, source, functions,
-        FUNCTION_KINDS, DECISION_KINDS, OPERATOR_KINDS, OPERAND_KINDS,
-        extract_name, count_decisions_for_python, true,
+        &crate::language::LanguageConfig {
+            function_kinds: FUNCTION_KINDS,
+            decision_kinds: DECISION_KINDS,
+            operator_kinds: OPERATOR_KINDS,
+            operand_kinds: OPERAND_KINDS,
+            extract_name,
+            count_decisions_fn: count_decisions_for_python,
+            require_children: true,
+        },
     );
 }
 

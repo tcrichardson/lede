@@ -22,20 +22,16 @@ pub fn collect_functions(
     node: Node,
     source: &str,
     functions: &mut Vec<FunctionComplexity>,
-    function_kinds: &[&str],
-    decision_kinds: &[&str],
-    operator_kinds: &[&str],
-    operand_kinds: &[&str],
-    extract_name: fn(Node, &str) -> String,
-    count_decisions_fn: fn(Node, &str, &[&str], &[&str]) -> u32,
-    require_children: bool,
+    config: &LanguageConfig,
 ) {
-    if function_kinds.contains(&node.kind()) && (!require_children || node.child_count() > 0) {
-        let name = extract_name(node, source);
-        let complexity = 1 + count_decisions_fn(node, source, decision_kinds, function_kinds);
-        let nesting_depth = crate::cognitive::max_nesting_depth(node, decision_kinds, function_kinds);
+    if config.function_kinds.contains(&node.kind())
+        && (!config.require_children || node.child_count() > 0)
+    {
+        let name = (config.extract_name)(node, source);
+        let complexity = 1 + (config.count_decisions_fn)(node, source, config.decision_kinds, config.function_kinds);
+        let nesting_depth = crate::cognitive::max_nesting_depth(node, config.decision_kinds, config.function_kinds);
         let (halstead_volume, halstead_difficulty) = crate::cognitive::halstead_metrics(
-            node, source, operator_kinds, operand_kinds, function_kinds,
+            node, source, config.operator_kinds, config.operand_kinds, config.function_kinds,
         );
         let halstead_effort = halstead_volume * halstead_difficulty;
         let halstead_time = halstead_effort / 18.0;
@@ -54,11 +50,7 @@ pub fn collect_functions(
     }
     let mut cursor = node.walk();
     for child in node.children(&mut cursor) {
-        collect_functions(
-            child, source, functions,
-            function_kinds, decision_kinds, operator_kinds, operand_kinds,
-            extract_name, count_decisions_fn, require_children,
-        );
+        collect_functions(child, source, functions, config);
     }
 }
 
