@@ -98,18 +98,17 @@ mod tests {
         parser.parse(source, None).unwrap()
     }
 
-    fn find_function<'a>(node: Node<'a>, kind: &str) -> Node<'a> {
+    fn find_function<'a>(node: Node<'a>, kind: &str) -> Option<Node<'a>> {
         if node.kind() == kind {
-            return node;
+            return Some(node);
         }
         let mut cursor = node.walk();
         for child in node.children(&mut cursor) {
-            let found = find_function(child, kind);
-            if found.kind() == kind {
-                return found;
+            if let Some(found) = find_function(child, kind) {
+                return Some(found);
             }
         }
-        node
+        None
     }
 
     #[test]
@@ -117,7 +116,7 @@ mod tests {
         let source = "fn f() { if true {} }";
         let tree = parse_rust(source);
         let root = tree.root_node();
-        let func = find_function(root, "function_item");
+        let func = find_function(root, "function_item").expect("function not found");
         let depth = max_nesting_depth(func, &["if_expression"], &["function_item"]);
         assert_eq!(depth, 1);
     }
@@ -127,7 +126,7 @@ mod tests {
         let source = "fn f() { if true { for x in y {} } }";
         let tree = parse_rust(source);
         let root = tree.root_node();
-        let func = find_function(root, "function_item");
+        let func = find_function(root, "function_item").expect("function not found");
         let depth = max_nesting_depth(func, &["if_expression", "for_expression"], &["function_item"]);
         assert_eq!(depth, 2);
     }
@@ -137,7 +136,7 @@ mod tests {
         let source = "fn f() { if true { fn g() { if true {} } } }";
         let tree = parse_rust(source);
         let root = tree.root_node();
-        let func = find_function(root, "function_item");
+        let func = find_function(root, "function_item").expect("function not found");
         let depth = max_nesting_depth(func, &["if_expression"], &["function_item"]);
         assert_eq!(depth, 1);
     }
@@ -147,7 +146,7 @@ mod tests {
         let source = "fn f() { let x = 1 + 2; }";
         let tree = parse_rust(source);
         let root = tree.root_node();
-        let func = find_function(root, "function_item");
+        let func = find_function(root, "function_item").expect("function not found");
         let (volume, difficulty) = halstead_metrics(
             func,
             source,
