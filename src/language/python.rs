@@ -1,4 +1,4 @@
-use crate::{FunctionComplexity, language::{LanguageAnalyzer, LanguageConfig}};
+use crate::language::{LanguageAnalyzer, LanguageConfig};
 use tree_sitter::{Node, Parser};
 
 pub struct PythonAnalyzer;
@@ -30,26 +30,19 @@ impl LanguageAnalyzer for PythonAnalyzer {
         path.extension().map_or(false, |e| e == "py")
     }
 
-    fn analyze(&self, source: &str) -> Result<Vec<FunctionComplexity>, String> {
+    fn language_name(&self) -> &'static str {
+        "Python"
+    }
+
+    fn parser(&self) -> Result<Parser, String> {
         let mut parser = Parser::new();
         let language: tree_sitter::Language = tree_sitter_python::LANGUAGE.into();
-        parser
-            .set_language(&language)
-            .map_err(|e| format!("{e:?}"))?;
-        let tree = parser.parse(source, None).ok_or("Failed to parse Python source")?;
-        if tree.root_node().has_error() {
-            return Err("Failed to parse Python source".to_string());
-        }
-        let mut functions = Vec::new();
-        collect_functions(tree.root_node(), source, &mut functions);
-        Ok(functions)
+        parser.set_language(&language).map_err(|e| format!("{e:?}"))?;
+        Ok(parser)
     }
-}
 
-fn collect_functions(node: Node, source: &str, functions: &mut Vec<FunctionComplexity>) {
-    crate::language::collect_functions(
-        node, source, functions,
-        &crate::language::LanguageConfig {
+    fn config(&self) -> LanguageConfig {
+        LanguageConfig {
             function_kinds: FUNCTION_KINDS,
             decision_kinds: DECISION_KINDS,
             operator_kinds: OPERATOR_KINDS,
@@ -57,8 +50,8 @@ fn collect_functions(node: Node, source: &str, functions: &mut Vec<FunctionCompl
             extract_name,
             count_decisions_fn: count_decisions_for_python,
             require_children: true,
-        },
-    );
+        }
+    }
 }
 
 fn count_decisions_for_python(

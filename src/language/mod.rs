@@ -14,7 +14,23 @@ pub struct LanguageConfig {
 
 pub trait LanguageAnalyzer: Send + Sync {
     fn can_analyze(&self, path: &Path) -> bool;
-    fn analyze(&self, source: &str) -> Result<Vec<FunctionComplexity>, String>;
+    fn config(&self) -> LanguageConfig;
+    fn parser(&self) -> Result<Parser, String>;
+    fn language_name(&self) -> &'static str {
+        "source"
+    }
+    fn analyze(&self, source: &str) -> Result<Vec<FunctionComplexity>, String> {
+        let mut parser = self.parser()?;
+        let config = self.config();
+        let msg = format!("Failed to parse {} source", self.language_name());
+        let tree = parser.parse(source, None).ok_or_else(|| msg.clone())?;
+        if tree.root_node().has_error() {
+            return Err(msg);
+        }
+        let mut functions = Vec::new();
+        collect_functions(tree.root_node(), source, &mut functions, &config);
+        Ok(functions)
+    }
 }
 
 /// Generic function collector. Each language analyzer calls this with its own configuration.
