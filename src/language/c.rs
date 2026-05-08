@@ -157,7 +157,7 @@ int baz() {
 "#;
         let analyzer = CAnalyzer;
         let result = analyzer.analyze(source).unwrap();
-        assert_eq!(result[0].complexity, 4); // base 1 + 3 cases
+        assert_eq!(result[0].complexity, 4); // base 1 + 2 cases + 1 default
     }
 
     #[test]
@@ -197,5 +197,18 @@ int loop() {
         let result = analyzer.analyze(source).unwrap();
         assert_eq!(result.len(), 1);
         assert_eq!(result[0].name, "foo");
+    }
+
+    #[test]
+    fn test_parse_error() {
+        let source = "int foo() {";
+        let analyzer = CAnalyzer;
+        assert!(analyzer.analyze(source).is_err());
+    }
+
+    #[test]
+    fn test_can_analyze_header() {
+        let analyzer = CAnalyzer;
+        assert!(analyzer.can_analyze(std::path::Path::new("foo.h")));
     }
 }
