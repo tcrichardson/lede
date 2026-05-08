@@ -33,11 +33,9 @@ Based on tree-sitter-c grammar:
 
 ### Decision Kinds
 - `if_statement`
-- `else_clause`
 - `for_statement`
 - `while_statement`
 - `do_statement`
-- `switch_statement`
 - `case_statement`
 - `conditional_expression`
 
