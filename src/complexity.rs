@@ -28,17 +28,16 @@ pub fn count_children_of_kind(node: Node, kinds: &[&str]) -> u32 {
     count
 }
 
+const BOOLEAN_OPS: &[&str] = &["&&", "||"];
+
 /// Check whether a binary_expression node uses `&&` or `||`.
 pub fn is_boolean_operator(node: Node, source: &str) -> bool {
     if node.kind() != "binary_expression" {
         return false;
     }
     let mut cursor = node.walk();
-    for child in node.children(&mut cursor) {
+    node.children(&mut cursor).any(|child| {
         let text = &source[child.start_byte()..child.end_byte()];
-        if text == "&&" || text == "||" {
-            return true;
-        }
-    }
-    false
+        BOOLEAN_OPS.contains(&text)
+    })
 }

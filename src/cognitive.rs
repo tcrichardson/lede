@@ -22,6 +22,50 @@ fn compute_nesting_depth(node: Node, decision_kinds: &[&str], function_kinds: &[
     max_depth
 }
 
+struct HalsteadState {
+    operators_distinct: HashSet<String>,
+    operators_total: u32,
+    operands_distinct: HashSet<String>,
+    operands_total: u32,
+}
+
+impl HalsteadState {
+    fn new() -> Self {
+        Self {
+            operators_distinct: HashSet::new(),
+            operators_total: 0,
+            operands_distinct: HashSet::new(),
+            operands_total: 0,
+        }
+    }
+
+    fn add_operator(&mut self, kind: &str) {
+        self.operators_distinct.insert(kind.to_string());
+        self.operators_total += 1;
+    }
+
+    fn add_operand(&mut self, text: &str) {
+        self.operands_distinct.insert(text.to_string());
+        self.operands_total += 1;
+    }
+
+    fn n1(&self) -> usize {
+        self.operators_distinct.len()
+    }
+
+    fn n2(&self) -> usize {
+        self.operands_distinct.len()
+    }
+
+    fn n(&self) -> usize {
+        self.n1() + self.n2()
+    }
+
+    fn total(&self) -> u32 {
+        self.operators_total + self.operands_total
+    }
+}
+
 pub fn halstead_metrics(
     node: Node,
     source: &str,
@@ -29,17 +73,13 @@ pub fn halstead_metrics(
     operand_kinds: &[&str],
     function_kinds: &[&str],
 ) -> (f64, f64) {
-    let mut operators_distinct: HashSet<String> = HashSet::new();
-    let mut operators_total: u32 = 0;
-    let mut operands_distinct: HashSet<String> = HashSet::new();
-    let mut operands_total: u32 = 0;
+    let mut state = HalsteadState::new();
+    collect_halstead(node, source, operator_kinds, operand_kinds, function_kinds, &mut state);
 
-    collect_halstead(node, source, operator_kinds, operand_kinds, function_kinds, &mut operators_distinct, &mut operators_total, &mut operands_distinct, &mut operands_total);
-
-    let n = operators_distinct.len() + operands_distinct.len();
-    let n1 = operators_distinct.len();
-    let n2 = operands_distinct.len();
-    let n_total = operators_total + operands_total;
+    let n = state.n();
+    let n1 = state.n1();
+    let n2 = state.n2();
+    let n_total = state.total();
 
     let volume = if n == 0 {
         0.0
@@ -50,7 +90,7 @@ pub fn halstead_metrics(
     let difficulty = if n2 == 0 {
         0.0
     } else {
-        ((n1 as f64) / 2.0) * ((operands_total as f64) / (n2 as f64))
+        ((n1 as f64) / 2.0) * ((state.operands_total as f64) / (n2 as f64))
     };
 
     (volume, difficulty)
@@ -62,19 +102,14 @@ fn collect_halstead(
     operator_kinds: &[&str],
     operand_kinds: &[&str],
     function_kinds: &[&str],
-    operators_distinct: &mut HashSet<String>,
-    operators_total: &mut u32,
-    operands_distinct: &mut HashSet<String>,
-    operands_total: &mut u32,
+    state: &mut HalsteadState,
 ) {
     let kind = node.kind();
     if operator_kinds.contains(&kind) {
-        operators_distinct.insert(kind.to_string());
-        *operators_total += 1;
+        state.add_operator(kind);
     } else if operand_kinds.contains(&kind) {
         let text = &source[node.start_byte()..node.end_byte()];
-        operands_distinct.insert(text.to_string());
-        *operands_total += 1;
+        state.add_operand(text);
     }
 
     let mut cursor = node.walk();
@@ -82,7 +117,7 @@ fn collect_halstead(
         if function_kinds.contains(&child.kind()) {
             continue;
         }
-        collect_halstead(child, source, operator_kinds, operand_kinds, function_kinds, operators_distinct, operators_total, operands_distinct, operands_total);
+        collect_halstead(child, source, operator_kinds, operand_kinds, function_kinds, state);
     }
 }
 

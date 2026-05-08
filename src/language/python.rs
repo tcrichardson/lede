@@ -47,51 +47,35 @@ impl LanguageAnalyzer for PythonAnalyzer {
 }
 
 fn collect_functions(node: Node, source: &str, functions: &mut Vec<FunctionComplexity>) {
-    if FUNCTION_KINDS.contains(&node.kind()) && node.child_count() > 0 {
-        let name = extract_name(node, source);
-        let complexity = 1 + count_decisions(node, source);
-        let nesting_depth = crate::cognitive::max_nesting_depth(node, DECISION_KINDS, FUNCTION_KINDS);
-        let (halstead_volume, halstead_difficulty) = crate::cognitive::halstead_metrics(
-            node, source, OPERATOR_KINDS, OPERAND_KINDS, FUNCTION_KINDS,
-        );
-        let halstead_effort = halstead_volume * halstead_difficulty;
-        let halstead_time = halstead_effort / 18.0;
-        functions.push(FunctionComplexity {
-            name,
-            line_start: node.start_position().row + 1,
-            line_end: node.end_position().row + 1,
-            lines: node.end_position().row - node.start_position().row + 1,
-            complexity,
-            nesting_depth,
-            halstead_volume,
-            halstead_difficulty,
-            halstead_effort,
-            halstead_time,
-        });
-    }
-    let mut cursor = node.walk();
-    for child in node.children(&mut cursor) {
-        collect_functions(child, source, functions);
-    }
+    crate::language::collect_functions(
+        node, source, functions,
+        FUNCTION_KINDS, DECISION_KINDS, OPERATOR_KINDS, OPERAND_KINDS,
+        extract_name, count_decisions_for_python, true,
+    );
 }
 
-fn count_decisions(node: Node, source: &str) -> u32 {
+fn count_decisions_for_python(
+    node: Node,
+    source: &str,
+    decision_kinds: &[&str],
+    function_kinds: &[&str],
+) -> u32 {
     let mut count = 0;
     let mut cursor = node.walk();
     for child in node.children(&mut cursor) {
-        if FUNCTION_KINDS.contains(&child.kind()) {
+        if function_kinds.contains(&child.kind()) {
             continue;
         }
-        if DECISION_KINDS.contains(&child.kind()) {
+        if decision_kinds.contains(&child.kind()) {
             count += 1;
         }
         if child.kind() == "match_statement" {
-            count += crate::complexity::count_descendants_of_kind(child, &["case_clause"], FUNCTION_KINDS);
+            count += crate::complexity::count_descendants_of_kind(child, &["case_clause"], function_kinds);
         }
         if crate::complexity::is_boolean_operator(child, source) {
             count += 1;
         }
-        count += count_decisions(child, source);
+        count += count_decisions_for_python(child, source, decision_kinds, function_kinds);
     }
     count
 }

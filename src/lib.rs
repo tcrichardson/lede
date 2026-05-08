@@ -38,6 +38,32 @@ pub struct FileResult {
     pub max_halstead_time: f64,
 }
 
+impl Default for FileResult {
+    fn default() -> Self {
+        Self {
+            path: std::path::PathBuf::new(),
+            total_complexity: 0,
+            total_lines: 0,
+            function_count: 0,
+            functions: Vec::new(),
+            error: None,
+            max_nesting_depth: 0,
+            avg_nesting_depth: 0.0,
+            avg_halstead_volume: 0.0,
+            avg_halstead_difficulty: 0.0,
+            avg_halstead_effort: 0.0,
+            avg_halstead_time: 0.0,
+            max_complexity: 0,
+            max_function_lines: 0,
+            total_function_lines: 0,
+            max_halstead_volume: 0.0,
+            max_halstead_difficulty: 0.0,
+            max_halstead_effort: 0.0,
+            max_halstead_time: 0.0,
+        }
+    }
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SummaryStatistics {
     pub files_analyzed: usize,
@@ -53,10 +79,63 @@ pub struct SummaryStatistics {
     pub avg_halstead_time: f64,
 }
 
+impl Default for SummaryStatistics {
+    fn default() -> Self {
+        Self {
+            files_analyzed: 0,
+            total_functions: 0,
+            total_lines: 0,
+            total_complexity: 0,
+            avg_complexity_per_function: 0.0,
+            max_nesting_depth: 0,
+            avg_nesting_depth: 0.0,
+            avg_halstead_volume: 0.0,
+            avg_halstead_difficulty: 0.0,
+            avg_halstead_effort: 0.0,
+            avg_halstead_time: 0.0,
+        }
+    }
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AnalysisOutput {
     pub summary: SummaryStatistics,
     pub files: Vec<FileResult>,
+}
+
+fn sum_usize(files: &[&FileResult], extractor: fn(&FileResult) -> usize) -> usize {
+    files.iter().map(|f| extractor(f)).sum()
+}
+
+fn sum_u32(files: &[&FileResult], extractor: fn(&FileResult) -> u32) -> u32 {
+    files.iter().map(|f| extractor(f)).sum()
+}
+
+fn max_u32_from_files(files: &[&FileResult], extractor: fn(&FileResult) -> u32) -> u32 {
+    files.iter().map(|f| extractor(f)).max().unwrap_or(0)
+}
+
+fn safe_div(numerator: f64, denominator: f64) -> f64 {
+    if denominator > 0.0 {
+        numerator / denominator
+    } else {
+        0.0
+    }
+}
+
+fn weighted_avg(
+    files: &[&FileResult],
+    total_functions: usize,
+    extractor: fn(&FileResult) -> f64,
+) -> f64 {
+    if total_functions == 0 {
+        return 0.0;
+    }
+    files
+        .iter()
+        .map(|f| extractor(f) * f.function_count as f64)
+        .sum::<f64>()
+        / total_functions as f64
 }
 
 impl SummaryStatistics {
@@ -67,46 +146,15 @@ impl SummaryStatistics {
             .collect();
 
         if successful.is_empty() {
-            return SummaryStatistics {
-                files_analyzed: 0,
-                total_functions: 0,
-                total_lines: 0,
-                total_complexity: 0,
-                avg_complexity_per_function: 0.0,
-                max_nesting_depth: 0,
-                avg_nesting_depth: 0.0,
-                avg_halstead_volume: 0.0,
-                avg_halstead_difficulty: 0.0,
-                avg_halstead_effort: 0.0,
-                avg_halstead_time: 0.0,
-            };
+            return SummaryStatistics::default();
         }
 
         let total_files = successful.len();
-        let total_functions: usize = successful.iter().map(|f| f.function_count).sum();
-        let total_lines: usize = successful.iter().map(|f| f.total_lines).sum();
-        let total_complexity: u32 = successful.iter().map(|f| f.total_complexity).sum();
-        let avg_complexity = if total_functions > 0 {
-            total_complexity as f64 / total_functions as f64
-        } else {
-            0.0
-        };
-        let max_nesting = successful
-            .iter()
-            .map(|f| f.max_nesting_depth)
-            .max()
-            .unwrap_or(0);
-
-        let weighted_avg = |extractor: fn(&FileResult) -> f64| -> f64 {
-            if total_functions == 0 {
-                return 0.0;
-            }
-            successful
-                .iter()
-                .map(|f| extractor(f) * f.function_count as f64)
-                .sum::<f64>()
-                / total_functions as f64
-        };
+        let total_functions = sum_usize(&successful, |f| f.function_count);
+        let total_lines = sum_usize(&successful, |f| f.total_lines);
+        let total_complexity = sum_u32(&successful, |f| f.total_complexity);
+        let avg_complexity = safe_div(total_complexity as f64, total_functions as f64);
+        let max_nesting = max_u32_from_files(&successful, |f| f.max_nesting_depth);
 
         SummaryStatistics {
             files_analyzed: total_files,
@@ -115,11 +163,11 @@ impl SummaryStatistics {
             total_complexity,
             avg_complexity_per_function: avg_complexity,
             max_nesting_depth: max_nesting,
-            avg_nesting_depth: weighted_avg(|f| f.avg_nesting_depth),
-            avg_halstead_volume: weighted_avg(|f| f.avg_halstead_volume),
-            avg_halstead_difficulty: weighted_avg(|f| f.avg_halstead_difficulty),
-            avg_halstead_effort: weighted_avg(|f| f.avg_halstead_effort),
-            avg_halstead_time: weighted_avg(|f| f.avg_halstead_time),
+            avg_nesting_depth: weighted_avg(&successful, total_functions, |f| f.avg_nesting_depth),
+            avg_halstead_volume: weighted_avg(&successful, total_functions, |f| f.avg_halstead_volume),
+            avg_halstead_difficulty: weighted_avg(&successful, total_functions, |f| f.avg_halstead_difficulty),
+            avg_halstead_effort: weighted_avg(&successful, total_functions, |f| f.avg_halstead_effort),
+            avg_halstead_time: weighted_avg(&successful, total_functions, |f| f.avg_halstead_time),
         }
     }
 }
