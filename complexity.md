@@ -3,16 +3,16 @@
 | Metric | Value |
 |--------|-------|
 | Files Analyzed | 14 |
-| Total Functions | 107 |
-| Total Lines | 1529 |
-| Total Complexity | 198 |
-| Avg Complexity / Function | 1.85 |
+| Total Functions | 102 |
+| Total Lines | 1549 |
+| Total Complexity | 193 |
+| Avg Complexity / Function | 1.89 |
 | Max Nesting Depth | 3 |
-| Avg Nesting Depth | 0.50 |
-| Avg Halstead Volume | 120.11 |
-| Avg Halstead Difficulty | 3.87 |
-| Avg Halstead Effort | 682.33 |
-| Avg Halstead Time | 37.91 |
+| Avg Nesting Depth | 0.52 |
+| Avg Halstead Volume | 129.42 |
+| Avg Halstead Difficulty | 4.00 |
+| Avg Halstead Effort | 874.71 |
+| Avg Halstead Time | 48.60 |
 
 ### ./src/analyzer.rs
 
@@ -20,36 +20,31 @@
 
 | Metric | Value |
 |--------|-------|
-| Total Functions | 10 |
-| Total Lines | 120 |
-| Total Function Lines | 97 |
-| Total Complexity | 22 |
-| Avg Complexity / Function | 2.20 |
-| Max Complexity | 6 |
+| Total Functions | 5 |
+| Total Lines | 80 |
+| Total Function Lines | 62 |
+| Total Complexity | 18 |
+| Avg Complexity / Function | 3.60 |
+| Max Complexity | 7 |
 | Max Nesting Depth | 3 |
-| Avg Nesting Depth | 0.80 |
-| Max Function Lines | 27 |
-| Avg Halstead Volume | 117.63 |
-| Max Halstead Volume | 283.55 |
-| Avg Halstead Difficulty | 5.01 |
-| Max Halstead Difficulty | 10.25 |
-| Avg Halstead Effort | 845.70 |
-| Max Halstead Effort | 2906.44 |
-| Avg Halstead Time | 46.98 |
-| Max Halstead Time | 161.47 |
+| Avg Nesting Depth | 1.60 |
+| Max Function Lines | 18 |
+| Avg Halstead Volume | 161.74 |
+| Max Halstead Volume | 325.48 |
+| Avg Halstead Difficulty | 5.71 |
+| Max Halstead Difficulty | 9.14 |
+| Avg Halstead Effort | 1211.09 |
+| Max Halstead Effort | 2975.86 |
+| Avg Halstead Time | 67.28 |
+| Max Halstead Time | 165.33 |
 
 | Function | Lines | Line Range | Complexity | Nesting | Halstead Vol | Difficulty | Halstead Effort | Halstead Time |
 |----------|-------|------------|------------|---------|--------------|------------|-----------------|---------------|
-| analyze_path | 14 | 15-28 | 4 | 1 | 213.62 | 6.82 | 1457.62 | 80.98 |
-| analyze_directory | 10 | 30-39 | 4 | 3 | 151.27 | 5.65 | 855.24 | 47.51 |
-| analyze_file | 15 | 41-55 | 6 | 3 | 252.01 | 9.25 | 2331.08 | 129.50 |
-| max_u32 | 3 | 57-59 | 1 | 0 | 39.30 | 2.25 | 88.43 | 4.91 |
-| max_usize | 3 | 61-63 | 1 | 0 | 39.30 | 2.25 | 88.43 | 4.91 |
-| max_f64 | 3 | 65-67 | 1 | 0 | 47.55 | 2.00 | 95.10 | 5.28 |
-| avg_f64 | 7 | 69-75 | 2 | 1 | 66.44 | 6.00 | 398.63 | 22.15 |
-| build_success_result | 27 | 77-103 | 1 | 0 | 283.55 | 10.25 | 2906.44 | 161.47 |
-| build_error_result | 8 | 105-112 | 1 | 0 | 48.43 | 2.86 | 138.38 | 7.69 |
-| build_empty_result | 7 | 114-120 | 1 | 0 | 34.87 | 2.80 | 97.63 | 5.42 |
+| analyze_path | 12 | 15-26 | 3 | 2 | 176.42 | 4.94 | 871.72 | 48.43 |
+| analyze_directory | 17 | 28-44 | 6 | 3 | 223.48 | 8.82 | 1971.88 | 109.55 |
+| analyze_file | 18 | 46-63 | 7 | 3 | 325.48 | 9.14 | 2975.86 | 165.33 |
+| build_error_result | 8 | 65-72 | 1 | 0 | 48.43 | 2.86 | 138.38 | 7.69 |
+| build_empty_result | 7 | 74-80 | 1 | 0 | 34.87 | 2.80 | 97.63 | 5.42 |
 
 ### ./src/complexity.rs
 
@@ -87,34 +82,35 @@
 
 | Metric | Value |
 |--------|-------|
-| Total Functions | 8 |
-| Total Lines | 181 |
-| Total Function Lines | 99 |
-| Total Complexity | 11 |
-| Avg Complexity / Function | 1.38 |
-| Max Complexity | 2 |
+| Total Functions | 9 |
+| Total Lines | 250 |
+| Total Function Lines | 164 |
+| Total Complexity | 14 |
+| Avg Complexity / Function | 1.56 |
+| Max Complexity | 3 |
 | Max Nesting Depth | 1 |
-| Avg Nesting Depth | 0.38 |
-| Max Function Lines | 31 |
-| Avg Halstead Volume | 81.91 |
-| Max Halstead Volume | 330.22 |
-| Avg Halstead Difficulty | 3.53 |
-| Max Halstead Difficulty | 10.06 |
-| Avg Halstead Effort | 534.82 |
-| Max Halstead Effort | 3322.84 |
-| Avg Halstead Time | 29.71 |
-| Max Halstead Time | 184.60 |
+| Avg Nesting Depth | 0.44 |
+| Max Function Lines | 65 |
+| Avg Halstead Volume | 171.21 |
+| Max Halstead Volume | 885.61 |
+| Avg Halstead Difficulty | 5.56 |
+| Max Halstead Difficulty | 21.79 |
+| Avg Halstead Effort | 2619.40 |
+| Max Halstead Effort | 19296.02 |
+| Avg Halstead Time | 145.52 |
+| Max Halstead Time | 1072.00 |
 
 | Function | Lines | Line Range | Complexity | Nesting | Halstead Vol | Difficulty | Halstead Effort | Halstead Time |
 |----------|-------|------------|------------|---------|--------------|------------|-----------------|---------------|
-| default | 23 | 42-64 | 1 | 0 | 83.05 | 1.33 | 110.73 | 6.15 |
-| default | 15 | 83-97 | 1 | 0 | 26.00 | 2.00 | 52.00 | 2.89 |
-| sum_usize | 3 | 106-108 | 1 | 0 | 31.02 | 2.00 | 62.04 | 3.45 |
-| sum_u32 | 3 | 110-112 | 1 | 0 | 31.02 | 2.00 | 62.04 | 3.45 |
-| max_u32_from_files | 3 | 114-116 | 1 | 0 | 39.30 | 1.88 | 73.69 | 4.09 |
-| safe_div | 7 | 118-124 | 2 | 1 | 30.88 | 3.00 | 92.64 | 5.15 |
-| weighted_avg | 14 | 126-139 | 2 | 1 | 83.76 | 6.00 | 502.57 | 27.92 |
-| from_results | 31 | 142-172 | 2 | 1 | 330.22 | 10.06 | 3322.84 | 184.60 |
+| default | 23 | 43-65 | 1 | 0 | 83.05 | 1.33 | 110.73 | 6.15 |
+| from_functions | 65 | 69-133 | 3 | 1 | 885.61 | 21.79 | 19296.02 | 1072.00 |
+| default | 15 | 152-166 | 1 | 0 | 26.00 | 2.00 | 52.00 | 2.89 |
+| sum_usize | 3 | 175-177 | 1 | 0 | 31.02 | 2.00 | 62.04 | 3.45 |
+| sum_u32 | 3 | 179-181 | 1 | 0 | 31.02 | 2.00 | 62.04 | 3.45 |
+| max_u32_from_files | 3 | 183-185 | 1 | 0 | 39.30 | 1.88 | 73.69 | 4.09 |
+| safe_div | 7 | 187-193 | 2 | 1 | 30.88 | 3.00 | 92.64 | 5.15 |
+| weighted_avg | 14 | 195-208 | 2 | 1 | 83.76 | 6.00 | 502.57 | 27.92 |
+| from_results | 31 | 211-241 | 2 | 1 | 330.22 | 10.06 | 3322.84 | 184.60 |
 
 ### ./src/output/json.rs
 
@@ -243,31 +239,31 @@
 | Metric | Value |
 |--------|-------|
 | Total Functions | 6 |
-| Total Lines | 123 |
-| Total Function Lines | 93 |
-| Total Complexity | 19 |
-| Avg Complexity / Function | 3.17 |
-| Max Complexity | 5 |
-| Max Nesting Depth | 2 |
-| Avg Nesting Depth | 0.83 |
-| Max Function Lines | 32 |
-| Avg Halstead Volume | 190.31 |
-| Max Halstead Volume | 380.55 |
-| Avg Halstead Difficulty | 7.52 |
-| Max Halstead Difficulty | 12.50 |
-| Avg Halstead Effort | 1761.90 |
-| Max Halstead Effort | 4756.90 |
-| Avg Halstead Time | 97.88 |
-| Max Halstead Time | 264.27 |
+| Total Lines | 140 |
+| Total Function Lines | 104 |
+| Total Complexity | 21 |
+| Avg Complexity / Function | 3.50 |
+| Max Complexity | 7 |
+| Max Nesting Depth | 3 |
+| Avg Nesting Depth | 1.00 |
+| Max Function Lines | 37 |
+| Avg Halstead Volume | 211.55 |
+| Max Halstead Volume | 390.08 |
+| Avg Halstead Difficulty | 7.98 |
+| Max Halstead Difficulty | 12.00 |
+| Avg Halstead Effort | 2082.79 |
+| Max Halstead Effort | 4681.01 |
+| Avg Halstead Time | 115.71 |
+| Max Halstead Time | 260.06 |
 
 | Function | Lines | Line Range | Complexity | Nesting | Halstead Vol | Difficulty | Halstead Effort | Halstead Time |
 |----------|-------|------------|------------|---------|--------------|------------|-----------------|---------------|
-| language_name | 3 | 20-22 | 1 | 0 | 18.09 | 1.00 | 18.09 | 1.01 |
-| analyze | 12 | 23-34 | 4 | 1 | 271.03 | 7.75 | 2100.47 | 116.69 |
-| collect_functions | 15 | 38-52 | 3 | 1 | 140.65 | 6.50 | 914.21 | 50.79 |
-| is_target_function | 9 | 54-62 | 5 | 1 | 114.71 | 9.60 | 1101.25 | 61.18 |
-| build_function_complexity | 32 | 64-95 | 1 | 0 | 380.55 | 12.50 | 4756.90 | 264.27 |
-| count_decisions | 22 | 97-118 | 5 | 2 | 216.84 | 7.75 | 1680.48 | 93.36 |
+| language_name | 3 | 26-28 | 1 | 0 | 18.09 | 1.00 | 18.09 | 1.01 |
+| analyze | 12 | 29-40 | 4 | 1 | 271.03 | 7.75 | 2100.47 | 116.69 |
+| collect_functions | 15 | 44-58 | 3 | 1 | 140.65 | 6.50 | 914.21 | 50.79 |
+| is_target_function | 9 | 60-68 | 5 | 1 | 114.71 | 9.60 | 1101.25 | 61.18 |
+| build_function_complexity | 37 | 70-106 | 1 | 0 | 390.08 | 12.00 | 4681.01 | 260.06 |
+| count_decisions | 28 | 108-135 | 7 | 3 | 334.70 | 11.00 | 3681.72 | 204.54 |
 
 ### ./src/language/rust.rs
 
@@ -284,13 +280,13 @@
 | Max Nesting Depth | 2 |
 | Avg Nesting Depth | 0.27 |
 | Max Function Lines | 14 |
-| Avg Halstead Volume | 90.65 |
+| Avg Halstead Volume | 90.06 |
 | Max Halstead Volume | 227.43 |
 | Avg Halstead Difficulty | 2.85 |
 | Max Halstead Difficulty | 9.35 |
-| Avg Halstead Effort | 363.14 |
+| Avg Halstead Effort | 362.55 |
 | Max Halstead Effort | 2125.61 |
-| Avg Halstead Time | 20.17 |
+| Avg Halstead Time | 20.14 |
 | Max Halstead Time | 118.09 |
 
 | Function | Lines | Line Range | Complexity | Nesting | Halstead Vol | Difficulty | Halstead Effort | Halstead Time |
@@ -298,7 +294,7 @@
 | can_analyze | 3 | 32-34 | 1 | 0 | 30.88 | 2.25 | 69.48 | 3.86 |
 | language_name | 3 | 36-38 | 1 | 0 | 18.09 | 1.00 | 18.09 | 1.01 |
 | parser | 6 | 40-45 | 2 | 1 | 96.00 | 5.06 | 485.33 | 26.96 |
-| config | 12 | 47-58 | 1 | 0 | 43.02 | 1.00 | 43.02 | 2.39 |
+| config | 12 | 47-58 | 1 | 0 | 36.54 | 1.00 | 36.54 | 2.03 |
 | extract_name | 12 | 61-72 | 4 | 2 | 227.43 | 9.35 | 2125.61 | 118.09 |
 | test_simple_function | 8 | 79-86 | 1 | 0 | 134.89 | 2.36 | 317.95 | 17.66 |
 | test_if_else_if | 12 | 89-100 | 1 | 0 | 68.11 | 2.00 | 136.23 | 7.57 |
@@ -322,13 +318,13 @@
 | Max Nesting Depth | 2 |
 | Avg Nesting Depth | 0.25 |
 | Max Function Lines | 12 |
-| Avg Halstead Volume | 93.25 |
+| Avg Halstead Volume | 92.71 |
 | Max Halstead Volume | 283.28 |
 | Avg Halstead Difficulty | 2.83 |
 | Max Halstead Difficulty | 10.33 |
-| Avg Halstead Effort | 407.93 |
+| Avg Halstead Effort | 407.39 |
 | Max Halstead Effort | 2927.18 |
-| Avg Halstead Time | 22.66 |
+| Avg Halstead Time | 22.63 |
 | Max Halstead Time | 162.62 |
 
 | Function | Lines | Line Range | Complexity | Nesting | Halstead Vol | Difficulty | Halstead Effort | Halstead Time |
@@ -336,7 +332,7 @@
 | can_analyze | 3 | 41-43 | 1 | 0 | 30.88 | 2.25 | 69.48 | 3.86 |
 | language_name | 3 | 45-47 | 1 | 0 | 18.09 | 1.00 | 18.09 | 1.01 |
 | parser | 6 | 49-54 | 2 | 1 | 96.00 | 5.06 | 485.33 | 26.96 |
-| config | 12 | 56-67 | 1 | 0 | 43.02 | 1.00 | 43.02 | 2.39 |
+| config | 12 | 56-67 | 1 | 0 | 36.54 | 1.00 | 36.54 | 2.03 |
 | extract_name | 12 | 70-81 | 6 | 2 | 283.28 | 10.33 | 2927.18 | 162.62 |
 | test_simple_function | 8 | 88-95 | 1 | 0 | 134.89 | 2.36 | 317.95 | 17.66 |
 | test_if_else | 6 | 98-103 | 1 | 0 | 74.01 | 1.95 | 144.32 | 8.02 |
@@ -352,38 +348,37 @@
 
 | Metric | Value |
 |--------|-------|
-| Total Functions | 12 |
-| Total Lines | 153 |
-| Total Function Lines | 101 |
-| Total Complexity | 21 |
-| Avg Complexity / Function | 1.75 |
-| Max Complexity | 6 |
+| Total Functions | 11 |
+| Total Lines | 127 |
+| Total Function Lines | 76 |
+| Total Complexity | 15 |
+| Avg Complexity / Function | 1.36 |
+| Max Complexity | 4 |
 | Max Nesting Depth | 2 |
-| Avg Nesting Depth | 0.42 |
-| Max Function Lines | 25 |
-| Avg Halstead Volume | 105.80 |
-| Max Halstead Volume | 285.40 |
-| Avg Halstead Difficulty | 3.34 |
+| Avg Nesting Depth | 0.27 |
+| Max Function Lines | 12 |
+| Avg Halstead Volume | 90.25 |
+| Max Halstead Volume | 227.43 |
+| Avg Halstead Difficulty | 2.82 |
 | Max Halstead Difficulty | 9.35 |
-| Avg Halstead Effort | 545.12 |
-| Max Halstead Effort | 2597.17 |
-| Avg Halstead Time | 30.28 |
-| Max Halstead Time | 144.29 |
+| Avg Halstead Effort | 359.35 |
+| Max Halstead Effort | 2125.61 |
+| Avg Halstead Time | 19.96 |
+| Max Halstead Time | 118.09 |
 
 | Function | Lines | Line Range | Complexity | Nesting | Halstead Vol | Difficulty | Halstead Effort | Halstead Time |
 |----------|-------|------------|------------|---------|--------------|------------|-----------------|---------------|
 | can_analyze | 3 | 30-32 | 1 | 0 | 30.88 | 2.25 | 69.48 | 3.86 |
 | language_name | 3 | 34-36 | 1 | 0 | 18.09 | 1.00 | 18.09 | 1.01 |
 | parser | 6 | 38-43 | 2 | 1 | 96.00 | 5.06 | 485.33 | 26.96 |
-| config | 12 | 45-56 | 1 | 0 | 38.05 | 1.00 | 38.05 | 2.11 |
-| count_decisions_for_python | 25 | 59-83 | 6 | 2 | 285.40 | 9.10 | 2597.17 | 144.29 |
-| extract_name | 12 | 85-96 | 4 | 2 | 227.43 | 9.35 | 2125.61 | 118.09 |
-| test_simple_function | 8 | 103-110 | 1 | 0 | 134.89 | 2.36 | 317.95 | 17.66 |
-| test_if_elif_else | 6 | 113-118 | 1 | 0 | 74.01 | 1.95 | 144.32 | 8.02 |
-| test_match | 6 | 121-126 | 1 | 0 | 74.01 | 1.95 | 144.32 | 8.02 |
-| test_lambda_included | 8 | 129-136 | 1 | 0 | 148.68 | 2.16 | 320.59 | 17.81 |
-| test_lambda_excluded_by_default | 6 | 139-144 | 1 | 0 | 68.11 | 2.00 | 136.23 | 7.57 |
-| test_try_except | 6 | 147-152 | 1 | 0 | 74.01 | 1.95 | 144.32 | 8.02 |
+| config | 12 | 45-56 | 1 | 0 | 46.60 | 1.00 | 46.60 | 2.59 |
+| extract_name | 12 | 59-70 | 4 | 2 | 227.43 | 9.35 | 2125.61 | 118.09 |
+| test_simple_function | 8 | 77-84 | 1 | 0 | 134.89 | 2.36 | 317.95 | 17.66 |
+| test_if_elif_else | 6 | 87-92 | 1 | 0 | 74.01 | 1.95 | 144.32 | 8.02 |
+| test_match | 6 | 95-100 | 1 | 0 | 74.01 | 1.95 | 144.32 | 8.02 |
+| test_lambda_included | 8 | 103-110 | 1 | 0 | 148.68 | 2.16 | 320.59 | 17.81 |
+| test_lambda_excluded_by_default | 6 | 113-118 | 1 | 0 | 68.11 | 2.00 | 136.23 | 7.57 |
+| test_try_except | 6 | 121-126 | 1 | 0 | 74.01 | 1.95 | 144.32 | 8.02 |
 
 ### ./src/language/c.rs
 
@@ -400,13 +395,13 @@
 | Max Nesting Depth | 2 |
 | Avg Nesting Depth | 0.33 |
 | Max Function Lines | 14 |
-| Avg Halstead Volume | 83.02 |
+| Avg Halstead Volume | 82.58 |
 | Max Halstead Volume | 205.13 |
 | Avg Halstead Difficulty | 3.01 |
 | Max Halstead Difficulty | 9.33 |
-| Avg Halstead Effort | 350.75 |
+| Avg Halstead Effort | 350.31 |
 | Max Halstead Effort | 1775.20 |
-| Avg Halstead Time | 19.49 |
+| Avg Halstead Time | 19.46 |
 | Max Halstead Time | 98.62 |
 
 | Function | Lines | Line Range | Complexity | Nesting | Halstead Vol | Difficulty | Halstead Effort | Halstead Time |
@@ -414,7 +409,7 @@
 | can_analyze | 3 | 29-31 | 1 | 0 | 30.88 | 2.25 | 69.48 | 3.86 |
 | language_name | 3 | 33-35 | 1 | 0 | 18.09 | 1.00 | 18.09 | 1.01 |
 | parser | 6 | 37-42 | 2 | 1 | 96.00 | 5.06 | 485.33 | 26.96 |
-| config | 12 | 44-55 | 1 | 0 | 41.51 | 1.00 | 41.51 | 2.31 |
+| config | 12 | 44-55 | 1 | 0 | 34.87 | 1.00 | 34.87 | 1.94 |
 | extract_name | 14 | 58-71 | 4 | 2 | 205.13 | 8.65 | 1775.20 | 98.62 |
 | find_identifier_in_declarator | 13 | 73-85 | 4 | 2 | 155.32 | 9.33 | 1449.69 | 80.54 |
 | test_simple_function | 8 | 92-99 | 1 | 0 | 134.89 | 2.36 | 317.95 | 17.66 |

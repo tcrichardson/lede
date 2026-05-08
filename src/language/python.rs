@@ -17,7 +17,7 @@ const OPERATOR_KINDS: &[&str] = &[
     "+", "-", "*", "/", "%", "//", "**",
     "==", "!=", "<", ">", "<=", ">=",
     "and", "or", "not", "in", "is",
-    "=", "+=", "-=" , "*=", "/=", "%=", "//=", "**=",
+    "=", "+=", "-=", "*=", "/=", "%=", "//=", "**=",
     "&", "|", "^", "<<", ">>", "~",
     ".", ":", "->",
     "return_statement", "yield", "await",
@@ -50,36 +50,10 @@ impl LanguageAnalyzer for PythonAnalyzer {
             operator_kinds: OPERATOR_KINDS,
             operand_kinds: OPERAND_KINDS,
             extract_name,
-            count_decisions_fn: count_decisions_for_python,
-            require_children: true,
+            match_case_kinds: &[("match_statement", "case_clause")],
+            skip_childless_nodes: true,
         }
     }
-}
-
-fn count_decisions_for_python(
-    node: Node,
-    source: &str,
-    decision_kinds: &[&str],
-    function_kinds: &[&str],
-) -> u32 {
-    let mut count = 0;
-    let mut cursor = node.walk();
-    for child in node.children(&mut cursor) {
-        if function_kinds.contains(&child.kind()) {
-            continue;
-        }
-        if decision_kinds.contains(&child.kind()) {
-            count += 1;
-        }
-        if child.kind() == "match_statement" {
-            count += crate::complexity::count_descendants_of_kind(child, &["case_clause"], function_kinds);
-        }
-        if crate::complexity::is_boolean_operator(child, source) {
-            count += 1;
-        }
-        count += count_decisions_for_python(child, source, decision_kinds, function_kinds);
-    }
-    count
 }
 
 fn extract_name(node: Node, source: &str) -> String {

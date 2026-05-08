@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+use std::path::Path;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct FunctionComplexity {
@@ -60,6 +61,74 @@ impl Default for FileResult {
             max_halstead_difficulty: 0.0,
             max_halstead_effort: 0.0,
             max_halstead_time: 0.0,
+        }
+    }
+}
+
+impl FileResult {
+    pub fn from_functions(path: &Path, total_lines: usize, functions: Vec<FunctionComplexity>) -> Self {
+        let count = functions.len();
+        if count == 0 {
+            return Self {
+                path: path.to_path_buf(),
+                total_lines,
+                ..Default::default()
+            };
+        }
+
+        let mut total_complexity: u32 = 0;
+        let mut total_function_lines: usize = 0;
+        let mut max_complexity: u32 = 0;
+        let mut max_function_lines: usize = 0;
+        let mut max_nesting_depth: u32 = 0;
+        let mut sum_nesting: f64 = 0.0;
+        let mut max_halstead_volume: f64 = 0.0;
+        let mut sum_halstead_volume: f64 = 0.0;
+        let mut max_halstead_difficulty: f64 = 0.0;
+        let mut sum_halstead_difficulty: f64 = 0.0;
+        let mut max_halstead_effort: f64 = 0.0;
+        let mut sum_halstead_effort: f64 = 0.0;
+        let mut max_halstead_time: f64 = 0.0;
+        let mut sum_halstead_time: f64 = 0.0;
+
+        for f in &functions {
+            total_complexity += f.complexity;
+            total_function_lines += f.lines;
+            max_complexity = max_complexity.max(f.complexity);
+            max_function_lines = max_function_lines.max(f.lines);
+            max_nesting_depth = max_nesting_depth.max(f.nesting_depth);
+            sum_nesting += f.nesting_depth as f64;
+            max_halstead_volume = max_halstead_volume.max(f.halstead_volume);
+            sum_halstead_volume += f.halstead_volume;
+            max_halstead_difficulty = max_halstead_difficulty.max(f.halstead_difficulty);
+            sum_halstead_difficulty += f.halstead_difficulty;
+            max_halstead_effort = max_halstead_effort.max(f.halstead_effort);
+            sum_halstead_effort += f.halstead_effort;
+            max_halstead_time = max_halstead_time.max(f.halstead_time);
+            sum_halstead_time += f.halstead_time;
+        }
+
+        let n = count as f64;
+        Self {
+            path: path.to_path_buf(),
+            total_complexity,
+            total_lines,
+            function_count: count,
+            error: None,
+            max_nesting_depth,
+            avg_nesting_depth: sum_nesting / n,
+            max_complexity,
+            max_function_lines,
+            total_function_lines,
+            max_halstead_volume,
+            avg_halstead_volume: sum_halstead_volume / n,
+            max_halstead_difficulty,
+            avg_halstead_difficulty: sum_halstead_difficulty / n,
+            max_halstead_effort,
+            avg_halstead_effort: sum_halstead_effort / n,
+            max_halstead_time,
+            avg_halstead_time: sum_halstead_time / n,
+            functions,
         }
     }
 }

@@ -2,6 +2,9 @@ use crate::FunctionComplexity;
 use std::path::Path;
 use tree_sitter::{Node, Parser};
 
+/// Stroud's number: estimated elementary mental discriminations per second.
+const STROUDS_NUMBER: f64 = 18.0;
+
 pub struct LanguageConfig {
     pub function_kinds: &'static [&'static str],
     pub closure_kinds: &'static [&'static str],
@@ -9,8 +12,11 @@ pub struct LanguageConfig {
     pub operator_kinds: &'static [&'static str],
     pub operand_kinds: &'static [&'static str],
     pub extract_name: fn(Node, &str) -> String,
-    pub count_decisions_fn: fn(Node, &str, &[&str], &[&str]) -> u32,
-    pub require_children: bool,
+    /// Pairs of (container_kind, child_kind) where each matching child
+    /// counts as one decision (e.g., Python match/case).
+    pub match_case_kinds: &'static [(&'static str, &'static str)],
+    /// If true, nodes with no children are skipped (e.g., bare lambda tokens in Python).
+    pub skip_childless_nodes: bool,
 }
 
 pub trait LanguageAnalyzer: Send + Sync {
@@ -55,7 +61,7 @@ fn is_target_function(node: Node, config: &LanguageConfig, include_closures: boo
     if !config.function_kinds.contains(&node.kind()) {
         return false;
     }
-    if config.require_children && node.child_count() == 0 {
+    if config.skip_childless_nodes && node.child_count() == 0 {
         return false;
     }
     include_closures || !config.closure_kinds.contains(&node.kind())
@@ -67,8 +73,13 @@ fn build_function_complexity(
     config: &LanguageConfig,
 ) -> FunctionComplexity {
     let name = (config.extract_name)(node, source);
-    let complexity =
-        1 + (config.count_decisions_fn)(node, source, config.decision_kinds, config.function_kinds);
+    let complexity = 1 + count_decisions(
+        node,
+        source,
+        config.decision_kinds,
+        config.function_kinds,
+        config.match_case_kinds,
+    );
     let nesting_depth =
         crate::cognitive::max_nesting_depth(node, config.decision_kinds, config.function_kinds);
     let (halstead_volume, halstead_difficulty) = crate::cognitive::halstead_metrics(
@@ -79,7 +90,7 @@ fn build_function_complexity(
         config.function_kinds,
     );
     let halstead_effort = halstead_volume * halstead_difficulty;
-    let halstead_time = halstead_effort / 18.0;
+    let halstead_time = halstead_effort / STROUDS_NUMBER;
     FunctionComplexity {
         name,
         line_start: node.start_position().row + 1,
@@ -99,6 +110,7 @@ pub fn count_decisions(
     source: &str,
     decision_kinds: &[&str],
     function_kinds: &[&str],
+    match_case_kinds: &[(&str, &str)],
 ) -> u32 {
     let mut count = 0;
     let mut cursor = node.walk();
@@ -112,7 +124,12 @@ pub fn count_decisions(
         if crate::complexity::is_boolean_operator(child, source) {
             count += 1;
         }
-        count += count_decisions(child, source, decision_kinds, function_kinds);
+        for (container, case_kind) in match_case_kinds {
+            if child.kind() == *container {
+                count += crate::complexity::count_descendants_of_kind(child, &[case_kind], function_kinds);
+            }
+        }
+        count += count_decisions(child, source, decision_kinds, function_kinds, match_case_kinds);
     }
     count
 }

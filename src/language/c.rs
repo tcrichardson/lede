@@ -49,8 +49,8 @@ impl LanguageAnalyzer for CAnalyzer {
             operator_kinds: OPERATOR_KINDS,
             operand_kinds: OPERAND_KINDS,
             extract_name,
-            count_decisions_fn: crate::language::count_decisions,
-            require_children: false,
+            match_case_kinds: &[],
+            skip_childless_nodes: false,
         }
     }
 }

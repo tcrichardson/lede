@@ -1,5 +1,5 @@
 use crate::{
-    FileResult, FunctionComplexity,
+    FileResult,
     language::{c::CAnalyzer, javascript::JavaScriptAnalyzer, python::PythonAnalyzer, rust::RustAnalyzer, LanguageAnalyzer},
 };
 use std::path::Path;
@@ -13,23 +13,28 @@ static ANALYZERS: &[&dyn LanguageAnalyzer] = &[
 ];
 
 pub fn analyze_path(path: &Path, include_closures: bool) -> Result<Vec<FileResult>, std::io::Error> {
-    if !path.is_file() && !path.is_dir() {
-        return Err(std::io::Error::new(
+    if path.is_file() {
+        Ok(vec![analyze_file(path, include_closures)?])
+    } else if path.is_dir() {
+        analyze_directory(path, include_closures)
+    } else {
+        Err(std::io::Error::new(
             std::io::ErrorKind::InvalidInput,
             format!("{} is not a file or directory", path.display()),
-        ));
+        ))
     }
-
-    if path.is_file() {
-        return Ok(vec![analyze_file(path, include_closures)?]);
-    }
-
-    analyze_directory(path, include_closures)
 }
 
 fn analyze_directory(path: &Path, include_closures: bool) -> Result<Vec<FileResult>, std::io::Error> {
     let mut results = Vec::new();
-    for entry in WalkDir::new(path).into_iter().filter_map(|e| e.ok()) {
+    for entry in WalkDir::new(path) {
+        let entry = match entry {
+            Ok(e) => e,
+            Err(e) => {
+                eprintln!("Warning: {e}");
+                continue;
+            }
+        };
         let p = entry.path();
         if p.is_file() {
             results.push(analyze_file(p, include_closures)?);
@@ -39,67 +44,22 @@ fn analyze_directory(path: &Path, include_closures: bool) -> Result<Vec<FileResu
 }
 
 fn analyze_file(path: &Path, include_closures: bool) -> Result<FileResult, std::io::Error> {
-    let source = std::fs::read_to_string(path)?;
+    let source = match std::fs::read_to_string(path) {
+        Ok(s) => s,
+        Err(e) => return Ok(build_error_result(path, 0, e.to_string())),
+    };
     let total_lines = source.lines().count();
 
     for analyzer in ANALYZERS {
         if analyzer.can_analyze(path) {
             match analyzer.analyze(&source, include_closures) {
-                Ok(functions) => return Ok(build_success_result(path, total_lines, functions)),
+                Ok(functions) => return Ok(FileResult::from_functions(path, total_lines, functions)),
                 Err(e) => return Ok(build_error_result(path, total_lines, e)),
             }
         }
     }
 
     Ok(build_empty_result(path, total_lines))
-}
-
-fn max_u32(functions: &[FunctionComplexity], extractor: fn(&FunctionComplexity) -> u32) -> u32 {
-    functions.iter().map(extractor).max().unwrap_or(0)
-}
-
-fn max_usize(functions: &[FunctionComplexity], extractor: fn(&FunctionComplexity) -> usize) -> usize {
-    functions.iter().map(extractor).max().unwrap_or(0)
-}
-
-fn max_f64(functions: &[FunctionComplexity], extractor: fn(&FunctionComplexity) -> f64) -> f64 {
-    functions.iter().map(extractor).fold(0.0_f64, f64::max)
-}
-
-fn avg_f64(functions: &[FunctionComplexity], extractor: fn(&FunctionComplexity) -> f64) -> f64 {
-    if functions.is_empty() {
-        0.0
-    } else {
-        functions.iter().map(extractor).sum::<f64>() / functions.len() as f64
-    }
-}
-
-fn build_success_result(path: &Path, total_lines: usize, functions: Vec<FunctionComplexity>) -> FileResult {
-    let function_count = functions.len();
-    let total_complexity: u32 = functions.iter().map(|f| f.complexity).sum();
-    let total_function_lines: usize = functions.iter().map(|f| f.lines).sum();
-
-    FileResult {
-        path: path.to_path_buf(),
-        total_complexity,
-        total_lines,
-        function_count,
-        error: None,
-        max_nesting_depth: max_u32(&functions, |f| f.nesting_depth),
-        avg_nesting_depth: avg_f64(&functions, |f| f.nesting_depth as f64),
-        avg_halstead_volume: avg_f64(&functions, |f| f.halstead_volume),
-        avg_halstead_difficulty: avg_f64(&functions, |f| f.halstead_difficulty),
-        avg_halstead_effort: avg_f64(&functions, |f| f.halstead_effort),
-        avg_halstead_time: avg_f64(&functions, |f| f.halstead_time),
-        max_complexity: max_u32(&functions, |f| f.complexity),
-        max_function_lines: max_usize(&functions, |f| f.lines),
-        total_function_lines,
-        max_halstead_volume: max_f64(&functions, |f| f.halstead_volume),
-        max_halstead_difficulty: max_f64(&functions, |f| f.halstead_difficulty),
-        max_halstead_effort: max_f64(&functions, |f| f.halstead_effort),
-        max_halstead_time: max_f64(&functions, |f| f.halstead_time),
-        functions,
-    }
 }
 
 fn build_error_result(path: &Path, total_lines: usize, error: String) -> FileResult {
