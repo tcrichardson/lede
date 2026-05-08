@@ -44,6 +44,7 @@ impl LanguageAnalyzer for CAnalyzer {
     fn config(&self) -> LanguageConfig {
         LanguageConfig {
             function_kinds: FUNCTION_KINDS,
+            closure_kinds: &[],
             decision_kinds: DECISION_KINDS,
             operator_kinds: OPERATOR_KINDS,
             operand_kinds: OPERAND_KINDS,
@@ -91,7 +92,7 @@ mod tests {
     fn test_simple_function() {
         let source = "int foo() { if (1) {} }";
         let analyzer = CAnalyzer;
-        let result = analyzer.analyze(source).unwrap();
+        let result = analyzer.analyze(source, false).unwrap();
         assert_eq!(result.len(), 1);
         assert_eq!(result[0].name, "foo");
         assert_eq!(result[0].complexity, 2);
@@ -101,7 +102,7 @@ mod tests {
     fn test_if_else() {
         let source = "int bar() { if (x) {} else {} }";
         let analyzer = CAnalyzer;
-        let result = analyzer.analyze(source).unwrap();
+        let result = analyzer.analyze(source, false).unwrap();
         assert_eq!(result[0].complexity, 2); // base 1 + if 1
     }
 
@@ -117,7 +118,7 @@ int baz() {
 }
 "#;
         let analyzer = CAnalyzer;
-        let result = analyzer.analyze(source).unwrap();
+        let result = analyzer.analyze(source, false).unwrap();
         assert_eq!(result[0].complexity, 4); // base 1 + 2 cases + 1 default
     }
 
@@ -131,7 +132,7 @@ int loop() {
 }
 "#;
         let analyzer = CAnalyzer;
-        let result = analyzer.analyze(source).unwrap();
+        let result = analyzer.analyze(source, false).unwrap();
         assert_eq!(result[0].complexity, 4); // base 1 + for 1 + while 1 + do 1
     }
 
@@ -139,7 +140,7 @@ int loop() {
     fn test_ternary() {
         let source = "int t() { return x > 0 ? 1 : 0; }";
         let analyzer = CAnalyzer;
-        let result = analyzer.analyze(source).unwrap();
+        let result = analyzer.analyze(source, false).unwrap();
         assert_eq!(result[0].complexity, 2); // base 1 + ternary 1
     }
 
@@ -147,7 +148,7 @@ int loop() {
     fn test_boolean_ops() {
         let source = "int b() { return a && b || c; }";
         let analyzer = CAnalyzer;
-        let result = analyzer.analyze(source).unwrap();
+        let result = analyzer.analyze(source, false).unwrap();
         assert_eq!(result[0].complexity, 3); // base 1 + && 1 + || 1
     }
 
@@ -155,7 +156,7 @@ int loop() {
     fn test_pointer_return_name() {
         let source = "int *foo() { return 0; }";
         let analyzer = CAnalyzer;
-        let result = analyzer.analyze(source).unwrap();
+        let result = analyzer.analyze(source, false).unwrap();
         assert_eq!(result.len(), 1);
         assert_eq!(result[0].name, "foo");
     }
@@ -164,7 +165,7 @@ int loop() {
     fn test_parse_error() {
         let source = "int foo() {";
         let analyzer = CAnalyzer;
-        assert!(analyzer.analyze(source).is_err());
+        assert!(analyzer.analyze(source, false).is_err());
     }
 
     #[test]

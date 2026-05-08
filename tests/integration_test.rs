@@ -17,9 +17,22 @@ fn test_rust_fixture_pretty() {
     assert!(stdout.contains("with_if"));
     assert!(stdout.contains("with_match"));
     assert!(stdout.contains("nested"));
-    assert!(stdout.contains("<closure>"));
+    assert!(!stdout.contains("<closure>"));
     assert!(stdout.contains("Halstead Vol"));
     assert!(stdout.contains("Nesting"));
+}
+
+#[test]
+fn test_rust_fixture_include_closures() {
+    let output = rubik()
+        .arg("tests/fixtures/rust_sample.rs")
+        .arg("--include-closures")
+        .output()
+        .expect("failed to run rubik");
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    assert!(stdout.contains("simple"));
+    assert!(stdout.contains("nested"));
+    assert!(stdout.contains("<closure>"));
 }
 
 #[test]

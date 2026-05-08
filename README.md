@@ -1,6 +1,6 @@
 # Rubik
 
-A fast CLI tool that computes cyclomatic code complexity and Halstead metrics for Rust, Python, JavaScript, and C source files. It reports complexity and cognitive metrics per function (including closures and anonymous functions) and per file.
+A fast CLI tool that computes cyclomatic code complexity and Halstead metrics for Rust, Python, JavaScript, and C source files. It reports complexity and cognitive metrics per function and per file. By default, closures and anonymous functions are excluded from analysis so they don't skew aggregate metrics — you can opt to include them with `--include-closures`.
 
 ## Features
 
@@ -10,7 +10,7 @@ A fast CLI tool that computes cyclomatic code complexity and Halstead metrics fo
 - **Nesting depth analysis:** Maximum and average control-flow nesting per function and file
 - **Per-function & per-file reporting:** See complexity and Halstead metrics at every level
 - **Project-level summary:** Aggregated statistics across all analyzed files
-- **Closure inclusion:** Anonymous functions, lambdas, and arrow functions are counted separately
+- **Closure handling:** Closures, lambdas, and arrow functions are excluded by default so they don't inflate function counts or dilute averages. Use `--include-closures` to analyze them
 - **Two output formats:** Pretty-printed tables (default) and JSON
 - **Directory scanning:** Analyze entire codebases recursively
 - **Graceful error handling:** Unparseable files are reported to stderr but do not stop the analysis
@@ -47,6 +47,12 @@ Output as JSON:
 rubik src/ -f json
 ```
 
+Include closures and lambdas in the analysis:
+
+```bash
+rubik src/ --include-closures
+```
+
 ### CLI Options
 
 ```
@@ -56,9 +62,10 @@ Arguments:
   <PATH>  Path to a file or directory to analyze
 
 Options:
-  -f, --format <FORMAT>  Output format: pretty or json [default: pretty]
-  -h, --help             Print help
-  -V, --version          Print version
+  -f, --format <FORMAT>     Output format: pretty or json [default: pretty]
+      --include-closures    Include closures, lambdas, and arrow functions in the analysis
+  -h, --help                Print help
+  -V, --version             Print version
 ```
 
 ## Example Output
@@ -178,7 +185,9 @@ For each function or closure, complexity starts at **1** and increments by **1**
 | `try` / `except` / `catch` | `try_expression` | `except_clause` | `catch_clause` | — |
 | `&&` / `\|\|` | binary operators | `and` / `or` | binary operators | binary operators |
 | Ternary | — | `conditional_expression` | `ternary_expression` | `conditional_expression` |
-| Lambda / Closure | `closure_expression` | `lambda` | `arrow_function` | — |
+| Lambda / Closure* | `closure_expression` | `lambda` | `arrow_function` | — |
+
+\* Only counted when `--include-closures` is passed. By default, closures are excluded so they don't inflate function counts or dilute average metrics.
 
 Per-file complexity is the sum of all function complexities in that file.
 
@@ -229,8 +238,8 @@ cargo test
 ```
 
 The suite includes:
-- **Unit tests** for each language analyzer and the cognitive metrics module (29 tests)
-- **Integration tests** that exercise the CLI against fixture files (6 tests)
+- **Unit tests** for each language analyzer and the cognitive metrics module (32 tests)
+- **Integration tests** that exercise the CLI against fixture files (7 tests)
 
 ## Architecture
 

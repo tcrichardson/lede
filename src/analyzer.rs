@@ -12,7 +12,7 @@ static ANALYZERS: &[&dyn LanguageAnalyzer] = &[
     &CAnalyzer,
 ];
 
-pub fn analyze_path(path: &Path) -> Result<Vec<FileResult>, std::io::Error> {
+pub fn analyze_path(path: &Path, include_closures: bool) -> Result<Vec<FileResult>, std::io::Error> {
     if !path.is_file() && !path.is_dir() {
         return Err(std::io::Error::new(
             std::io::ErrorKind::InvalidInput,
@@ -23,27 +23,27 @@ pub fn analyze_path(path: &Path) -> Result<Vec<FileResult>, std::io::Error> {
     let mut results = Vec::new();
 
     if path.is_file() {
-        results.push(analyze_file(path)?);
+        results.push(analyze_file(path, include_closures)?);
         return Ok(results);
     }
 
     for entry in WalkDir::new(path).into_iter().filter_map(|e| e.ok()) {
         let p = entry.path();
         if p.is_file() {
-            results.push(analyze_file(p)?);
+            results.push(analyze_file(p, include_closures)?);
         }
     }
 
     Ok(results)
 }
 
-fn analyze_file(path: &Path) -> Result<FileResult, std::io::Error> {
+fn analyze_file(path: &Path, include_closures: bool) -> Result<FileResult, std::io::Error> {
     let source = std::fs::read_to_string(path)?;
     let total_lines = source.lines().count();
 
     for analyzer in ANALYZERS {
         if analyzer.can_analyze(path) {
-            match analyzer.analyze(&source) {
+            match analyzer.analyze(&source, include_closures) {
                 Ok(functions) => return Ok(build_success_result(path, total_lines, functions)),
                 Err(e) => return Ok(build_error_result(path, total_lines, e)),
             }

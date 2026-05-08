@@ -4,6 +4,7 @@ use tree_sitter::{Node, Parser};
 
 pub struct LanguageConfig {
     pub function_kinds: &'static [&'static str],
+    pub closure_kinds: &'static [&'static str],
     pub decision_kinds: &'static [&'static str],
     pub operator_kinds: &'static [&'static str],
     pub operand_kinds: &'static [&'static str],
@@ -19,7 +20,7 @@ pub trait LanguageAnalyzer: Send + Sync {
     fn language_name(&self) -> &'static str {
         "source"
     }
-    fn analyze(&self, source: &str) -> Result<Vec<FunctionComplexity>, String> {
+    fn analyze(&self, source: &str, include_closures: bool) -> Result<Vec<FunctionComplexity>, String> {
         let mut parser = self.parser()?;
         let config = self.config();
         let msg = format!("Failed to parse {} source", self.language_name());
@@ -28,7 +29,7 @@ pub trait LanguageAnalyzer: Send + Sync {
             return Err(msg);
         }
         let mut functions = Vec::new();
-        collect_functions(tree.root_node(), source, &mut functions, &config);
+        collect_functions(tree.root_node(), source, &mut functions, &config, include_closures);
         Ok(functions)
     }
 }
@@ -39,34 +40,37 @@ pub fn collect_functions(
     source: &str,
     functions: &mut Vec<FunctionComplexity>,
     config: &LanguageConfig,
+    include_closures: bool,
 ) {
     if config.function_kinds.contains(&node.kind())
         && (!config.require_children || node.child_count() > 0)
     {
-        let name = (config.extract_name)(node, source);
-        let complexity = 1 + (config.count_decisions_fn)(node, source, config.decision_kinds, config.function_kinds);
-        let nesting_depth = crate::cognitive::max_nesting_depth(node, config.decision_kinds, config.function_kinds);
-        let (halstead_volume, halstead_difficulty) = crate::cognitive::halstead_metrics(
-            node, source, config.operator_kinds, config.operand_kinds, config.function_kinds,
-        );
-        let halstead_effort = halstead_volume * halstead_difficulty;
-        let halstead_time = halstead_effort / 18.0;
-        functions.push(FunctionComplexity {
-            name,
-            line_start: node.start_position().row + 1,
-            line_end: node.end_position().row + 1,
-            lines: node.end_position().row - node.start_position().row + 1,
-            complexity,
-            nesting_depth,
-            halstead_volume,
-            halstead_difficulty,
-            halstead_effort,
-            halstead_time,
-        });
+        if include_closures || !config.closure_kinds.contains(&node.kind()) {
+            let name = (config.extract_name)(node, source);
+            let complexity = 1 + (config.count_decisions_fn)(node, source, config.decision_kinds, config.function_kinds);
+            let nesting_depth = crate::cognitive::max_nesting_depth(node, config.decision_kinds, config.function_kinds);
+            let (halstead_volume, halstead_difficulty) = crate::cognitive::halstead_metrics(
+                node, source, config.operator_kinds, config.operand_kinds, config.function_kinds,
+            );
+            let halstead_effort = halstead_volume * halstead_difficulty;
+            let halstead_time = halstead_effort / 18.0;
+            functions.push(FunctionComplexity {
+                name,
+                line_start: node.start_position().row + 1,
+                line_end: node.end_position().row + 1,
+                lines: node.end_position().row - node.start_position().row + 1,
+                complexity,
+                nesting_depth,
+                halstead_volume,
+                halstead_difficulty,
+                halstead_effort,
+                halstead_time,
+            });
+        }
     }
     let mut cursor = node.walk();
     for child in node.children(&mut cursor) {
-        collect_functions(child, source, functions, config);
+        collect_functions(child, source, functions, config, include_closures);
     }
 }
 

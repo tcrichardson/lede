@@ -4,6 +4,7 @@ use tree_sitter::{Node, Parser};
 pub struct PythonAnalyzer;
 
 const FUNCTION_KINDS: &[&str] = &["function_definition", "lambda"];
+const CLOSURE_KINDS: &[&str] = &["lambda"];
 const DECISION_KINDS: &[&str] = &[
     "if_statement",
     "elif_clause",
@@ -44,6 +45,7 @@ impl LanguageAnalyzer for PythonAnalyzer {
     fn config(&self) -> LanguageConfig {
         LanguageConfig {
             function_kinds: FUNCTION_KINDS,
+            closure_kinds: CLOSURE_KINDS,
             decision_kinds: DECISION_KINDS,
             operator_kinds: OPERATOR_KINDS,
             operand_kinds: OPERAND_KINDS,
@@ -101,7 +103,7 @@ mod tests {
     fn test_simple_function() {
         let source = "def foo():\n    if x:\n        pass\n";
         let analyzer = PythonAnalyzer;
-        let result = analyzer.analyze(source).unwrap();
+        let result = analyzer.analyze(source, false).unwrap();
         assert_eq!(result.len(), 1);
         assert_eq!(result[0].name, "foo");
         assert_eq!(result[0].complexity, 2);
@@ -111,7 +113,7 @@ mod tests {
     fn test_if_elif_else() {
         let source = "def bar():\n    if x:\n        pass\n    elif y:\n        pass\n    else:\n        pass\n";
         let analyzer = PythonAnalyzer;
-        let result = analyzer.analyze(source).unwrap();
+        let result = analyzer.analyze(source, false).unwrap();
         assert_eq!(result[0].complexity, 3); // base 1 + if 1 + elif 1
     }
 
@@ -119,25 +121,33 @@ mod tests {
     fn test_match() {
         let source = "def baz():\n    match x:\n        case 1:\n            pass\n        case 2:\n            pass\n";
         let analyzer = PythonAnalyzer;
-        let result = analyzer.analyze(source).unwrap();
+        let result = analyzer.analyze(source, false).unwrap();
         assert_eq!(result[0].complexity, 3); // base 1 + 2 cases
     }
 
     #[test]
-    fn test_lambda() {
+    fn test_lambda_included() {
         let source = "f = lambda x: 1 if x > 0 else 0\n";
         let analyzer = PythonAnalyzer;
-        let result = analyzer.analyze(source).unwrap();
+        let result = analyzer.analyze(source, true).unwrap();
         assert_eq!(result.len(), 1);
         assert!(result[0].name.starts_with("<lambda>"));
         assert_eq!(result[0].complexity, 2); // base 1 + ternary 1
     }
 
     #[test]
+    fn test_lambda_excluded_by_default() {
+        let source = "f = lambda x: 1 if x > 0 else 0\n";
+        let analyzer = PythonAnalyzer;
+        let result = analyzer.analyze(source, false).unwrap();
+        assert_eq!(result.len(), 0);
+    }
+
+    #[test]
     fn test_try_except() {
         let source = "def err():\n    try:\n        pass\n    except A:\n        pass\n    except B:\n        pass\n";
         let analyzer = PythonAnalyzer;
-        let result = analyzer.analyze(source).unwrap();
+        let result = analyzer.analyze(source, false).unwrap();
         assert_eq!(result[0].complexity, 3); // base 1 + except A 1 + except B 1
     }
 }

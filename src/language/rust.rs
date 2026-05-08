@@ -4,6 +4,7 @@ use tree_sitter::{Node, Parser};
 pub struct RustAnalyzer;
 
 const FUNCTION_KINDS: &[&str] = &["function_item", "closure_expression"];
+const CLOSURE_KINDS: &[&str] = &["closure_expression"];
 const DECISION_KINDS: &[&str] = &[
     "if_expression",
     "if_let_expression",
@@ -46,6 +47,7 @@ impl LanguageAnalyzer for RustAnalyzer {
     fn config(&self) -> LanguageConfig {
         LanguageConfig {
             function_kinds: FUNCTION_KINDS,
+            closure_kinds: CLOSURE_KINDS,
             decision_kinds: DECISION_KINDS,
             operator_kinds: OPERATOR_KINDS,
             operand_kinds: OPERAND_KINDS,
@@ -77,7 +79,7 @@ mod tests {
     fn test_simple_function() {
         let source = "fn foo() { if true {} }";
         let analyzer = RustAnalyzer;
-        let result = analyzer.analyze(source).unwrap();
+        let result = analyzer.analyze(source, false).unwrap();
         assert_eq!(result.len(), 1);
         assert_eq!(result[0].name, "foo");
         assert_eq!(result[0].complexity, 2);
@@ -93,7 +95,7 @@ fn bar() {
 }
 "#;
         let analyzer = RustAnalyzer;
-        let result = analyzer.analyze(source).unwrap();
+        let result = analyzer.analyze(source, false).unwrap();
         assert_eq!(result[0].complexity, 3); // base 1 + if 1 + else-if 1
     }
 
@@ -109,25 +111,34 @@ fn baz() {
 }
 "#;
         let analyzer = RustAnalyzer;
-        let result = analyzer.analyze(source).unwrap();
+        let result = analyzer.analyze(source, false).unwrap();
         assert_eq!(result[0].complexity, 4); // base 1 + 3 arms
     }
 
     #[test]
-    fn test_closure() {
+    fn test_closure_included() {
         let source = "fn outer() { let f = |x| if x > 0 { 1 } else { 0 }; }";
         let analyzer = RustAnalyzer;
-        let result = analyzer.analyze(source).unwrap();
+        let result = analyzer.analyze(source, true).unwrap();
         assert_eq!(result.len(), 2);
         let closure = result.iter().find(|f| f.name.starts_with("<closure>")).unwrap();
         assert_eq!(closure.complexity, 2);
     }
 
     #[test]
+    fn test_closure_excluded_by_default() {
+        let source = "fn outer() { let f = |x| if x > 0 { 1 } else { 0 }; }";
+        let analyzer = RustAnalyzer;
+        let result = analyzer.analyze(source, false).unwrap();
+        assert_eq!(result.len(), 1);
+        assert!(!result[0].name.starts_with("<closure>"));
+    }
+
+    #[test]
     fn test_boolean_ops() {
         let source = "fn b() { a && b || c; }";
         let analyzer = RustAnalyzer;
-        let result = analyzer.analyze(source).unwrap();
+        let result = analyzer.analyze(source, false).unwrap();
         assert_eq!(result[0].complexity, 3); // base 1 + && 1 + || 1
     }
 }

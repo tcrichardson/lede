@@ -11,12 +11,16 @@ struct Args {
     /// Output format: markdown, pretty, or json
     #[arg(short, long, default_value = "markdown")]
     format: String,
+
+    /// Include closures and lambda expressions in the analysis
+    #[arg(long)]
+    include_closures: bool,
 }
 
 fn main() {
     let args = Args::parse();
 
-    let results = match analyze_path(&args.path) {
+    let results = match analyze_path(&args.path, args.include_closures) {
         Ok(r) => r,
         Err(e) => {
             eprintln!("Error: {}", e);
