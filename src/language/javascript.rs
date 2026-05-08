@@ -58,7 +58,7 @@ fn collect_functions(node: Node, source: &str, functions: &mut Vec<FunctionCompl
     crate::language::collect_functions(
         node, source, functions,
         FUNCTION_KINDS, DECISION_KINDS, OPERATOR_KINDS, OPERAND_KINDS,
-        extract_name,
+        extract_name, crate::language::count_decisions,
     );
 }
 

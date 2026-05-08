@@ -53,8 +53,34 @@ fn collect_functions(node: Node, source: &str, functions: &mut Vec<FunctionCompl
     crate::language::collect_functions(
         node, source, functions,
         FUNCTION_KINDS, DECISION_KINDS, OPERATOR_KINDS, OPERAND_KINDS,
-        extract_name,
+        extract_name, count_decisions_for_python,
     );
+}
+
+fn count_decisions_for_python(
+    node: Node,
+    source: &str,
+    decision_kinds: &[&str],
+    function_kinds: &[&str],
+) -> u32 {
+    let mut count = 0;
+    let mut cursor = node.walk();
+    for child in node.children(&mut cursor) {
+        if function_kinds.contains(&child.kind()) {
+            continue;
+        }
+        if decision_kinds.contains(&child.kind()) {
+            count += 1;
+        }
+        if child.kind() == "match_statement" {
+            count += crate::complexity::count_descendants_of_kind(child, &["case_clause"], function_kinds);
+        }
+        if crate::complexity::is_boolean_operator(child, source) {
+            count += 1;
+        }
+        count += count_decisions_for_python(child, source, decision_kinds, function_kinds);
+    }
+    count
 }
 
 fn extract_name(node: Node, source: &str) -> String {

@@ -17,10 +17,11 @@ pub fn collect_functions(
     operator_kinds: &[&str],
     operand_kinds: &[&str],
     extract_name: fn(Node, &str) -> String,
+    count_decisions_fn: fn(Node, &str, &[&str], &[&str]) -> u32,
 ) {
     if function_kinds.contains(&node.kind()) && node.child_count() > 0 {
         let name = extract_name(node, source);
-        let complexity = 1 + count_decisions(node, source, decision_kinds, function_kinds);
+        let complexity = 1 + count_decisions_fn(node, source, decision_kinds, function_kinds);
         let nesting_depth = crate::cognitive::max_nesting_depth(node, decision_kinds, function_kinds);
         let (halstead_volume, halstead_difficulty) = crate::cognitive::halstead_metrics(
             node, source, operator_kinds, operand_kinds, function_kinds,
@@ -45,7 +46,7 @@ pub fn collect_functions(
         collect_functions(
             child, source, functions,
             function_kinds, decision_kinds, operator_kinds, operand_kinds,
-            extract_name,
+            extract_name, count_decisions_fn,
         );
     }
 }
@@ -64,9 +65,6 @@ pub fn count_decisions(
         }
         if decision_kinds.contains(&child.kind()) {
             count += 1;
-        }
-        if child.kind() == "match_statement" {
-            count += crate::complexity::count_descendants_of_kind(child, &["case_clause"], function_kinds);
         }
         if crate::complexity::is_boolean_operator(child, source) {
             count += 1;
