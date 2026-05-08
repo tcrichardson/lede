@@ -23,7 +23,6 @@ const OPERATOR_KINDS: &[&str] = &[
 ];
 const OPERAND_KINDS: &[&str] = &[
     "identifier", "number_literal", "string_literal", "char_literal",
-    "true", "false", "null",
 ];
 
 impl LanguageAnalyzer for CAnalyzer {
@@ -189,5 +188,14 @@ int loop() {
         let analyzer = CAnalyzer;
         let result = analyzer.analyze(source).unwrap();
         assert_eq!(result[0].complexity, 3); // base 1 + && 1 + || 1
+    }
+
+    #[test]
+    fn test_pointer_return_name() {
+        let source = "int *foo() { return 0; }";
+        let analyzer = CAnalyzer;
+        let result = analyzer.analyze(source).unwrap();
+        assert_eq!(result.len(), 1);
+        assert_eq!(result[0].name, "foo");
     }
 }
