@@ -20,20 +20,21 @@ pub fn analyze_path(path: &Path, include_closures: bool) -> Result<Vec<FileResul
         ));
     }
 
-    let mut results = Vec::new();
-
     if path.is_file() {
-        results.push(analyze_file(path, include_closures)?);
-        return Ok(results);
+        return Ok(vec![analyze_file(path, include_closures)?]);
     }
 
+    analyze_directory(path, include_closures)
+}
+
+fn analyze_directory(path: &Path, include_closures: bool) -> Result<Vec<FileResult>, std::io::Error> {
+    let mut results = Vec::new();
     for entry in WalkDir::new(path).into_iter().filter_map(|e| e.ok()) {
         let p = entry.path();
         if p.is_file() {
             results.push(analyze_file(p, include_closures)?);
         }
     }
-
     Ok(results)
 }
 
