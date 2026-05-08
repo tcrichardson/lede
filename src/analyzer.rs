@@ -50,53 +50,51 @@ fn analyze_file(path: &Path) -> Result<FileResult, std::io::Error> {
     Ok(build_empty_result(path, total_lines))
 }
 
+fn max_u32(functions: &[FunctionComplexity], extractor: fn(&FunctionComplexity) -> u32) -> u32 {
+    functions.iter().map(extractor).max().unwrap_or(0)
+}
+
+fn max_usize(functions: &[FunctionComplexity], extractor: fn(&FunctionComplexity) -> usize) -> usize {
+    functions.iter().map(extractor).max().unwrap_or(0)
+}
+
+fn max_f64(functions: &[FunctionComplexity], extractor: fn(&FunctionComplexity) -> f64) -> f64 {
+    functions.iter().map(extractor).fold(0.0_f64, f64::max)
+}
+
+fn avg_f64(functions: &[FunctionComplexity], extractor: fn(&FunctionComplexity) -> f64) -> f64 {
+    if functions.is_empty() {
+        0.0
+    } else {
+        functions.iter().map(extractor).sum::<f64>() / functions.len() as f64
+    }
+}
+
 fn build_success_result(path: &Path, total_lines: usize, functions: Vec<FunctionComplexity>) -> FileResult {
     let function_count = functions.len();
     let total_complexity: u32 = functions.iter().map(|f| f.complexity).sum();
     let total_function_lines: usize = functions.iter().map(|f| f.lines).sum();
-    let max_complexity = functions.iter().map(|f| f.complexity).max().unwrap_or(0);
-    let max_function_lines = functions.iter().map(|f| f.lines).max().unwrap_or(0);
-    let max_nesting_depth = functions.iter().map(|f| f.nesting_depth).max().unwrap_or(0);
-
-    let max_halstead_volume = functions.iter().map(|f| f.halstead_volume).fold(0.0_f64, f64::max);
-    let max_halstead_difficulty = functions.iter().map(|f| f.halstead_difficulty).fold(0.0_f64, f64::max);
-    let max_halstead_effort = functions.iter().map(|f| f.halstead_effort).fold(0.0_f64, f64::max);
-    let max_halstead_time = functions.iter().map(|f| f.halstead_time).fold(0.0_f64, f64::max);
-
-    let avg = |extractor: fn(&FunctionComplexity) -> f64| -> f64 {
-        if function_count == 0 {
-            0.0
-        } else {
-            functions.iter().map(extractor).sum::<f64>() / function_count as f64
-        }
-    };
-
-    let avg_nesting_depth = avg(|f| f.nesting_depth as f64);
-    let avg_halstead_volume = avg(|f| f.halstead_volume);
-    let avg_halstead_difficulty = avg(|f| f.halstead_difficulty);
-    let avg_halstead_effort = avg(|f| f.halstead_effort);
-    let avg_halstead_time = avg(|f| f.halstead_time);
 
     FileResult {
         path: path.to_path_buf(),
         total_complexity,
         total_lines,
         function_count,
-        functions,
         error: None,
-        max_nesting_depth,
-        avg_nesting_depth,
-        avg_halstead_volume,
-        avg_halstead_difficulty,
-        avg_halstead_effort,
-        avg_halstead_time,
-        max_complexity,
-        max_function_lines,
+        max_nesting_depth: max_u32(&functions, |f| f.nesting_depth),
+        avg_nesting_depth: avg_f64(&functions, |f| f.nesting_depth as f64),
+        avg_halstead_volume: avg_f64(&functions, |f| f.halstead_volume),
+        avg_halstead_difficulty: avg_f64(&functions, |f| f.halstead_difficulty),
+        avg_halstead_effort: avg_f64(&functions, |f| f.halstead_effort),
+        avg_halstead_time: avg_f64(&functions, |f| f.halstead_time),
+        max_complexity: max_u32(&functions, |f| f.complexity),
+        max_function_lines: max_usize(&functions, |f| f.lines),
         total_function_lines,
-        max_halstead_volume,
-        max_halstead_difficulty,
-        max_halstead_effort,
-        max_halstead_time,
+        max_halstead_volume: max_f64(&functions, |f| f.halstead_volume),
+        max_halstead_difficulty: max_f64(&functions, |f| f.halstead_difficulty),
+        max_halstead_effort: max_f64(&functions, |f| f.halstead_effort),
+        max_halstead_time: max_f64(&functions, |f| f.halstead_time),
+        functions,
     }
 }
 
