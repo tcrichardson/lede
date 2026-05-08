@@ -52,16 +52,23 @@ fn format_file(file: &FileResult) -> String {
         return String::new();
     }
 
-    let fc = file.function_count;
-    let avg_complexity = if fc > 0 { file.total_complexity as f64 / fc as f64 } else { 0.0 };
-
     let mut out = format!("### {}\n\n", file.path.display());
     out.push_str("#### File Summary\n\n");
-    out.push_str("| Metric | Value |\n");
-    out.push_str("|--------|-------|\n");
+    out.push_str(&format_file_summary(file));
+    out.push_str(&format_function_table(&file.functions));
+    out
+}
+
+fn format_file_summary(file: &FileResult) -> String {
+    let fc = file.function_count;
+    let avg_complexity = if fc > 0 {
+        file.total_complexity as f64 / fc as f64
+    } else {
+        0.0
+    };
 
     let rows = vec![
-        metric_row("Total Functions", fc),
+        metric_row("Total Functions", file.function_count),
         metric_row("Total Lines", file.total_lines),
         metric_row("Total Function Lines", file.total_function_lines),
         metric_row("Total Complexity", file.total_complexity),
@@ -69,7 +76,7 @@ fn format_file(file: &FileResult) -> String {
         metric_row("Max Complexity", file.max_complexity),
         metric_row("Max Nesting Depth", file.max_nesting_depth),
         metric_row_f64("Avg Nesting Depth", file.avg_nesting_depth, 2),
-        metric_row_f64("Max Function Lines", file.max_function_lines as f64, 2),
+        metric_row("Max Function Lines", file.max_function_lines),
         metric_row_f64("Avg Halstead Volume", file.avg_halstead_volume, 2),
         metric_row_f64("Max Halstead Volume", file.max_halstead_volume, 2),
         metric_row_f64("Avg Halstead Difficulty", file.avg_halstead_difficulty, 2),
@@ -79,18 +86,24 @@ fn format_file(file: &FileResult) -> String {
         metric_row_f64("Avg Halstead Time", file.avg_halstead_time, 2),
         metric_row_f64("Max Halstead Time", file.max_halstead_time, 2),
     ];
+
+    let mut out = String::from("| Metric | Value |\n|--------|-------|\n");
     for row in rows {
         out.push_str(&row);
     }
     out.push('\n');
+    out
+}
 
-    out.push_str("| Function | Lines | Line Range | Complexity | Nesting | Halstead Vol | Difficulty | Halstead Effort | Halstead Time |\n");
+fn format_function_table(functions: &[FunctionComplexity]) -> String {
+    let mut out = String::from(
+        "| Function | Lines | Line Range | Complexity | Nesting | Halstead Vol | Difficulty | Halstead Effort | Halstead Time |\n",
+    );
     out.push_str("|----------|-------|------------|------------|---------|--------------|------------|-----------------|---------------|\n");
-    for func in &file.functions {
+    for func in functions {
         out.push_str(&format_function_row(func));
     }
     out.push('\n');
-
     out
 }
 
