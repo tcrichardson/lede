@@ -1,10 +1,10 @@
 # Rubik
 
-A fast CLI tool that computes cyclomatic code complexity and Halstead metrics for Rust, Python, and JavaScript source files. It reports complexity and cognitive metrics per function (including closures and anonymous functions) and per file.
+A fast CLI tool that computes cyclomatic code complexity and Halstead metrics for Rust, Python, JavaScript, and C source files. It reports complexity and cognitive metrics per function (including closures and anonymous functions) and per file.
 
 ## Features
 
-- **Multi-language support:** Rust, Python, and JavaScript/JSX
+- **Multi-language support:** Rust, Python, JavaScript/JSX, and C
 - **Cyclomatic complexity:** Classic decision-point counting per function and file
 - **Halstead metrics:** Volume, difficulty, effort, and estimated time per function
 - **Nesting depth analysis:** Maximum and average control-flow nesting per function and file
@@ -168,17 +168,17 @@ Options:
 
 For each function or closure, complexity starts at **1** and increments by **1** for each decision point:
 
-| Decision Point | Rust | Python | JavaScript |
-|---|---|---|---|
-| `if` / `elif` | `if_expression` | `if_statement`, `elif_clause` | `if_statement` |
-| `match` / `switch` / `case` | `match_expression` (per arm) | `match_statement` (per case) | `switch_statement` (per case) |
-| `for` | `for_expression` | `for_statement` | `for_statement` |
-| `while` | `while_expression` | `while_statement` | `while_statement`, `do_statement` |
-| `loop` | `loop_expression` | — | — |
-| `try` / `except` / `catch` | `try_expression` | `except_clause` | `catch_clause` |
-| `&&` / `\|\|` | binary operators | `and` / `or` | binary operators |
-| Ternary | — | `conditional_expression` | `ternary_expression` |
-| Lambda / Closure | `closure_expression` | `lambda` | `arrow_function` |
+| Decision Point | Rust | Python | JavaScript | C |
+|---|---|---|---|---|
+| `if` / `elif` | `if_expression` | `if_statement`, `elif_clause` | `if_statement` | `if_statement` |
+| `match` / `switch` / `case` | `match_expression` (per arm) | `match_statement` (per case) | `switch_statement` (per case) | `case_statement` |
+| `for` | `for_expression` | `for_statement` | `for_statement` | `for_statement` |
+| `while` | `while_expression` | `while_statement` | `while_statement`, `do_statement` | `while_statement`, `do_statement` |
+| `loop` | `loop_expression` | — | — | — |
+| `try` / `except` / `catch` | `try_expression` | `except_clause` | `catch_clause` | — |
+| `&&` / `\|\|` | binary operators | `and` / `or` | binary operators | binary operators |
+| Ternary | — | `conditional_expression` | `ternary_expression` | `conditional_expression` |
+| Lambda / Closure | `closure_expression` | `lambda` | `arrow_function` | — |
 
 Per-file complexity is the sum of all function complexities in that file.
 
@@ -216,6 +216,7 @@ When analyzing multiple files, the JSON and pretty output include a top-level su
 | Rust | `.rs` |
 | Python | `.py` |
 | JavaScript | `.js`, `.jsx` |
+| C | `.c`, `.h` |
 
 Files with unsupported extensions are silently skipped.
 
@@ -228,8 +229,8 @@ cargo test
 ```
 
 The suite includes:
-- **Unit tests** for each language analyzer and the cognitive metrics module (20 tests)
-- **Integration tests** that exercise the CLI against fixture files (5 tests)
+- **Unit tests** for each language analyzer and the cognitive metrics module (29 tests)
+- **Integration tests** that exercise the CLI against fixture files (6 tests)
 
 ## Architecture
 
