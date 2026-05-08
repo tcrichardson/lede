@@ -18,8 +18,9 @@ pub fn collect_functions(
     operand_kinds: &[&str],
     extract_name: fn(Node, &str) -> String,
     count_decisions_fn: fn(Node, &str, &[&str], &[&str]) -> u32,
+    require_children: bool,
 ) {
-    if function_kinds.contains(&node.kind()) && node.child_count() > 0 {
+    if function_kinds.contains(&node.kind()) && (!require_children || node.child_count() > 0) {
         let name = extract_name(node, source);
         let complexity = 1 + count_decisions_fn(node, source, decision_kinds, function_kinds);
         let nesting_depth = crate::cognitive::max_nesting_depth(node, decision_kinds, function_kinds);
@@ -46,7 +47,7 @@ pub fn collect_functions(
         collect_functions(
             child, source, functions,
             function_kinds, decision_kinds, operator_kinds, operand_kinds,
-            extract_name, count_decisions_fn,
+            extract_name, count_decisions_fn, require_children,
         );
     }
 }

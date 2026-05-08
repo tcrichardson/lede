@@ -47,13 +47,10 @@ impl LanguageAnalyzer for PythonAnalyzer {
 }
 
 fn collect_functions(node: Node, source: &str, functions: &mut Vec<FunctionComplexity>) {
-    if node.kind() == "function_definition" && node.child_count() == 0 {
-        return;
-    }
     crate::language::collect_functions(
         node, source, functions,
         FUNCTION_KINDS, DECISION_KINDS, OPERATOR_KINDS, OPERAND_KINDS,
-        extract_name, count_decisions_for_python,
+        extract_name, count_decisions_for_python, true,
     );
 }
 
