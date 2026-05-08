@@ -13,22 +13,25 @@ static ANALYZERS: &[&dyn LanguageAnalyzer] = &[
 ];
 
 pub fn analyze_path(path: &Path) -> Result<Vec<FileResult>, std::io::Error> {
-    let mut results = Vec::new();
-
-    if path.is_file() {
-        results.push(analyze_file(path)?);
-    } else if path.is_dir() {
-        for entry in WalkDir::new(path).into_iter().filter_map(|e| e.ok()) {
-            let p = entry.path();
-            if p.is_file() {
-                results.push(analyze_file(p)?);
-            }
-        }
-    } else {
+    if !path.is_file() && !path.is_dir() {
         return Err(std::io::Error::new(
             std::io::ErrorKind::InvalidInput,
             format!("{} is not a file or directory", path.display()),
         ));
+    }
+
+    let mut results = Vec::new();
+
+    if path.is_file() {
+        results.push(analyze_file(path)?);
+        return Ok(results);
+    }
+
+    for entry in WalkDir::new(path).into_iter().filter_map(|e| e.ok()) {
+        let p = entry.path();
+        if p.is_file() {
+            results.push(analyze_file(p)?);
+        }
     }
 
     Ok(results)
