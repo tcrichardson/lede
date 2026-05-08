@@ -1,6 +1,16 @@
 use crate::FunctionComplexity;
 use std::path::Path;
-use tree_sitter::Node;
+use tree_sitter::{Node, Parser};
+
+pub struct LanguageConfig {
+    pub function_kinds: &'static [&'static str],
+    pub decision_kinds: &'static [&'static str],
+    pub operator_kinds: &'static [&'static str],
+    pub operand_kinds: &'static [&'static str],
+    pub extract_name: fn(Node, &str) -> String,
+    pub count_decisions_fn: fn(Node, &str, &[&str], &[&str]) -> u32,
+    pub require_children: bool,
+}
 
 pub trait LanguageAnalyzer: Send + Sync {
     fn can_analyze(&self, path: &Path) -> bool;
