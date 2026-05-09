@@ -208,6 +208,8 @@ impl Default for SummaryStatistics {
 pub struct AnalysisOutput {
     pub summary: SummaryStatistics,
     pub files: Vec<FileResult>,
+    #[serde(skip_serializing_if = "Option::is_none", default)]
+    pub clusters: Option<Vec<crate::duplicates::DuplicateCluster>>,
 }
 
 fn safe_div(numerator: f64, denominator: f64) -> f64 {

@@ -9,6 +9,7 @@ impl OutputFormatter for JsonFormatter {
         let output = AnalysisOutput {
             summary,
             files: results.to_vec(),
+            clusters: None,
         };
 
         serde_json::to_string_pretty(&output).unwrap_or_else(|_| "{}".to_string())
