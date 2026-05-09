@@ -1,11 +1,33 @@
-use crate::{FileResult, output::OutputFormatter};
+use crate::{FileResult, duplicates::DuplicateCluster, output::OutputFormatter};
 use comfy_table::{Table, ContentArrangement};
 
 pub struct PrettyFormatter;
 
 impl OutputFormatter for PrettyFormatter {
-    fn format(&self, results: &[FileResult]) -> String {
-        results.iter().map(format_file_entry).collect()
+    fn format(&self, results: &[FileResult], clusters: &[DuplicateCluster]) -> String {
+        let mut out = String::new();
+        if !clusters.is_empty() {
+            out.push_str("Structural Duplication Candidates\n\n");
+            for cluster in clusters {
+                let n = cluster.instances.len();
+                let suffix = if n == 1 { "" } else { "es" };
+                out.push_str(&format!("{} ({} exact match{})\n", cluster.name, n, suffix));
+                for inst in &cluster.instances {
+                    out.push_str(&format!(
+                        "  {}:{}  CC={}  lines={}  nest={}  vol={:.2}\n",
+                        inst.path.display(),
+                        inst.line_start,
+                        inst.complexity,
+                        inst.lines,
+                        inst.nesting_depth,
+                        inst.halstead_volume
+                    ));
+                }
+                out.push('\n');
+            }
+        }
+        out.push_str(&results.iter().map(format_file_entry).collect::<String>());
+        out
     }
 }
 

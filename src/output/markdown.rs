@@ -1,14 +1,18 @@
-use crate::{FileResult, FunctionComplexity, SummaryStatistics, output::OutputFormatter};
+use crate::{FileResult, FunctionComplexity, SummaryStatistics, duplicates::DuplicateCluster, output::OutputFormatter};
 
 pub struct MarkdownFormatter;
 
 impl OutputFormatter for MarkdownFormatter {
-    fn format(&self, results: &[FileResult]) -> String {
+    fn format(&self, results: &[FileResult], clusters: &[DuplicateCluster]) -> String {
         let mut out = String::new();
 
         let summary = SummaryStatistics::from_results(results);
         if summary.files_analyzed > 0 {
             out.push_str(&format_summary(&summary));
+        }
+
+        if !clusters.is_empty() {
+            out.push_str(&format_clusters(clusters));
         }
 
         for file in results {
@@ -129,4 +133,27 @@ fn format_function_row(func: &FunctionComplexity) -> String {
         func.halstead_effort,
         func.halstead_time
     )
+}
+
+fn format_clusters(clusters: &[DuplicateCluster]) -> String {
+    let mut out = String::from("## Structural Duplication Candidates\n\n");
+    for cluster in clusters {
+        let n = cluster.instances.len();
+        let suffix = if n == 1 { "" } else { "es" };
+        out.push_str(&format!("### {} ({} exact match{})\n\n", cluster.name, n, suffix));
+        out.push_str("| File | Line | Complexity | Lines | Halstead Volume |\n");
+        out.push_str("|------|------|------------|-------|-----------------|\n");
+        for inst in &cluster.instances {
+            out.push_str(&format!(
+                "| {} | {} | {} | {} | {:.2} |\n",
+                inst.path.display(),
+                inst.line_start,
+                inst.complexity,
+                inst.lines,
+                inst.halstead_volume
+            ));
+        }
+        out.push('\n');
+    }
+    out
 }

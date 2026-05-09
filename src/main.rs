@@ -34,6 +34,7 @@ fn main() {
         }
     }
 
+    let clusters = rubik::duplicates::compute_duplicates(&results);
     let formatter = output::get_formatter(&args.format);
-    println!("{}", formatter.format(&results));
+    println!("{}", formatter.format(&results, &clusters));
 }
