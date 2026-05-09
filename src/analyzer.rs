@@ -1,6 +1,6 @@
 use crate::{
     FileResult,
-    language::{c::CAnalyzer, javascript::JavaScriptAnalyzer, python::PythonAnalyzer, rust::RustAnalyzer, LanguageAnalyzer},
+    language::{c::CAnalyzer, javascript::JavaScriptAnalyzer, python::PythonAnalyzer, rust::RustAnalyzer, typescript::TypeScriptAnalyzer, LanguageAnalyzer},
 };
 use std::path::Path;
 use walkdir::WalkDir;
@@ -9,6 +9,7 @@ static ANALYZERS: &[&dyn LanguageAnalyzer] = &[
     &RustAnalyzer,
     &PythonAnalyzer,
     &JavaScriptAnalyzer,
+    &TypeScriptAnalyzer,
     &CAnalyzer,
 ];
 
