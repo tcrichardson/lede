@@ -245,7 +245,65 @@ fn weighted_avg(
         / total_functions as f64
 }
 
+struct SummaryAccumulator {
+    total_functions: usize,
+    total_lines: usize,
+    total_complexity: u32,
+    max_nesting_depth: u32,
+    weighted_sum_nesting: f64,
+    weighted_sum_halstead_volume: f64,
+    weighted_sum_halstead_difficulty: f64,
+    weighted_sum_halstead_effort: f64,
+    weighted_sum_halstead_time: f64,
+}
+
+impl SummaryAccumulator {
+    fn new() -> Self {
+        Self {
+            total_functions: 0,
+            total_lines: 0,
+            total_complexity: 0,
+            max_nesting_depth: 0,
+            weighted_sum_nesting: 0.0,
+            weighted_sum_halstead_volume: 0.0,
+            weighted_sum_halstead_difficulty: 0.0,
+            weighted_sum_halstead_effort: 0.0,
+            weighted_sum_halstead_time: 0.0,
+        }
+    }
+
+    fn add_file(&mut self, file: &FileResult) {
+        let n = file.function_count as f64;
+        self.total_functions += file.function_count;
+        self.total_lines += file.total_lines;
+        self.total_complexity += file.total_complexity;
+        self.max_nesting_depth = self.max_nesting_depth.max(file.max_nesting_depth);
+        self.weighted_sum_nesting += file.avg_nesting_depth * n;
+        self.weighted_sum_halstead_volume += file.avg_halstead_volume * n;
+        self.weighted_sum_halstead_difficulty += file.avg_halstead_difficulty * n;
+        self.weighted_sum_halstead_effort += file.avg_halstead_effort * n;
+        self.weighted_sum_halstead_time += file.avg_halstead_time * n;
+    }
+}
+
 impl SummaryStatistics {
+    fn from_accumulator(acc: SummaryAccumulator) -> Self {
+        let n = acc.total_functions as f64;
+        Self {
+            files_analyzed: 0, // populated by caller
+            total_functions: acc.total_functions,
+            total_lines: acc.total_lines,
+            total_complexity: acc.total_complexity,
+            avg_complexity_per_function: safe_div(acc.total_complexity as f64, n),
+            max_nesting_depth: acc.max_nesting_depth,
+            avg_nesting_depth: safe_div(acc.weighted_sum_nesting, n),
+            avg_halstead_volume: safe_div(acc.weighted_sum_halstead_volume, n),
+            avg_halstead_difficulty: safe_div(acc.weighted_sum_halstead_difficulty, n),
+            avg_halstead_effort: safe_div(acc.weighted_sum_halstead_effort, n),
+            avg_halstead_time: safe_div(acc.weighted_sum_halstead_time, n),
+        }
+    }
+
     pub fn from_results(results: &[FileResult]) -> Self {
         let successful: Vec<&FileResult> = results
             .iter()
@@ -257,25 +315,14 @@ impl SummaryStatistics {
         }
 
         let total_files = successful.len();
-        let total_functions = sum_usize(&successful, |f| f.function_count);
-        let total_lines = sum_usize(&successful, |f| f.total_lines);
-        let total_complexity = sum_u32(&successful, |f| f.total_complexity);
-        let avg_complexity = safe_div(total_complexity as f64, total_functions as f64);
-        let max_nesting = max_u32_from_files(&successful, |f| f.max_nesting_depth);
-
-        SummaryStatistics {
-            files_analyzed: total_files,
-            total_functions,
-            total_lines,
-            total_complexity,
-            avg_complexity_per_function: avg_complexity,
-            max_nesting_depth: max_nesting,
-            avg_nesting_depth: weighted_avg(&successful, total_functions, |f| f.avg_nesting_depth),
-            avg_halstead_volume: weighted_avg(&successful, total_functions, |f| f.avg_halstead_volume),
-            avg_halstead_difficulty: weighted_avg(&successful, total_functions, |f| f.avg_halstead_difficulty),
-            avg_halstead_effort: weighted_avg(&successful, total_functions, |f| f.avg_halstead_effort),
-            avg_halstead_time: weighted_avg(&successful, total_functions, |f| f.avg_halstead_time),
+        let mut acc = SummaryAccumulator::new();
+        for file in &successful {
+            acc.add_file(file);
         }
+
+        let mut stats = SummaryStatistics::from_accumulator(acc);
+        stats.files_analyzed = total_files;
+        stats
     }
 }
 
