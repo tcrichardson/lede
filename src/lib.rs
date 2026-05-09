@@ -210,39 +210,12 @@ pub struct AnalysisOutput {
     pub files: Vec<FileResult>,
 }
 
-fn sum_usize(files: &[&FileResult], extractor: fn(&FileResult) -> usize) -> usize {
-    files.iter().map(|f| extractor(f)).sum()
-}
-
-fn sum_u32(files: &[&FileResult], extractor: fn(&FileResult) -> u32) -> u32 {
-    files.iter().map(|f| extractor(f)).sum()
-}
-
-fn max_u32_from_files(files: &[&FileResult], extractor: fn(&FileResult) -> u32) -> u32 {
-    files.iter().map(|f| extractor(f)).max().unwrap_or(0)
-}
-
 fn safe_div(numerator: f64, denominator: f64) -> f64 {
     if denominator > 0.0 {
         numerator / denominator
     } else {
         0.0
     }
-}
-
-fn weighted_avg(
-    files: &[&FileResult],
-    total_functions: usize,
-    extractor: fn(&FileResult) -> f64,
-) -> f64 {
-    if total_functions == 0 {
-        return 0.0;
-    }
-    files
-        .iter()
-        .map(|f| extractor(f) * f.function_count as f64)
-        .sum::<f64>()
-        / total_functions as f64
 }
 
 struct SummaryAccumulator {
