@@ -14,13 +14,14 @@ impl OutputFormatter for PrettyFormatter {
                 out.push_str(&format!("{} ({} exact match{})\n", cluster.name, n, suffix));
                 for inst in &cluster.instances {
                     out.push_str(&format!(
-                        "  {}:{}  CC={}  lines={}  nest={}  vol={:.2}\n",
+                        "  {}:{}  CC={}  lines={}  nest={}  vol={:.2}  diff={:.2}\n",
                         inst.path.display(),
                         inst.line_start,
                         inst.complexity,
                         inst.lines,
                         inst.nesting_depth,
-                        inst.halstead_volume
+                        inst.halstead_volume,
+                        inst.halstead_difficulty
                     ));
                 }
                 out.push('\n');

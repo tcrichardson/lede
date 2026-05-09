@@ -16,6 +16,7 @@ pub struct ClusterInstance {
     pub lines: usize,
     pub nesting_depth: u32,
     pub halstead_volume: f64,
+    pub halstead_difficulty: f64,
 }
 
 pub fn compute_duplicates(results: &[FileResult]) -> Vec<DuplicateCluster> {
@@ -53,6 +54,7 @@ pub fn compute_duplicates(results: &[FileResult]) -> Vec<DuplicateCluster> {
                     lines: func.lines,
                     nesting_depth: func.nesting_depth,
                     halstead_volume: func.halstead_volume,
+                    halstead_difficulty: func.halstead_difficulty,
                 })
                 .collect();
 

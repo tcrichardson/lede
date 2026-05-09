@@ -141,16 +141,17 @@ fn format_clusters(clusters: &[DuplicateCluster]) -> String {
         let n = cluster.instances.len();
         let suffix = if n == 1 { "" } else { "es" };
         out.push_str(&format!("### {} ({} exact match{})\n\n", cluster.name, n, suffix));
-        out.push_str("| File | Line | Complexity | Lines | Halstead Volume |\n");
-        out.push_str("|------|------|------------|-------|-----------------|\n");
+        out.push_str("| File | Line | Complexity | Lines | Halstead Volume | Halstead Difficulty |\n");
+        out.push_str("|------|------|------------|-------|-----------------|---------------------|\n");
         for inst in &cluster.instances {
             out.push_str(&format!(
-                "| {} | {} | {} | {} | {:.2} |\n",
+                "| {} | {} | {} | {} | {:.2} | {:.2} |\n",
                 inst.path.display(),
                 inst.line_start,
                 inst.complexity,
                 inst.lines,
-                inst.halstead_volume
+                inst.halstead_volume,
+                inst.halstead_difficulty
             ));
         }
         out.push('\n');

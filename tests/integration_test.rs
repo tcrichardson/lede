@@ -1,4 +1,5 @@
 use std::process::Command;
+use rubik::output::OutputFormatter;
 
 fn rubik() -> Command {
     let mut cmd = Command::new("cargo");
@@ -138,4 +139,36 @@ fn test_directory_scan() {
     assert!(paths.iter().any(|p| p.contains("js_sample.js")));
     assert!(paths.iter().any(|p| p.contains("c_sample.c")));
     assert!(parsed.summary.files_analyzed >= 4);
+}
+
+#[test]
+fn test_duplicate_clusters_in_output() {
+    let results = rubik::analyze_path(
+        std::path::Path::new("tests/fixtures/duplicates/"),
+        false,
+    )
+    .expect("failed to analyze duplicates directory");
+
+    let clusters = rubik::duplicates::compute_duplicates(&results);
+
+    assert!(!clusters.is_empty(), "expected at least one duplicate cluster");
+
+    let duplicated_cluster = clusters
+        .iter()
+        .find(|c| c.name == "duplicated")
+        .expect("expected a cluster named 'duplicated'");
+
+    assert_eq!(
+        duplicated_cluster.instances.len(),
+        2,
+        "expected exactly 2 instances of 'duplicated'"
+    );
+
+    // Also verify markdown output contains the duplication section
+    let formatter = rubik::output::markdown::MarkdownFormatter;
+    let output = formatter.format(&results, &clusters);
+    assert!(
+        output.contains("Structural Duplication Candidates"),
+        "expected markdown output to contain duplication heading"
+    );
 }

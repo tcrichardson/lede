@@ -1,0 +1,3 @@
+fn duplicated() {
+    if true {}
+}
