@@ -239,8 +239,8 @@ cargo test
 ```
 
 The suite includes:
-- **Unit tests** for each language analyzer and the cognitive metrics module (32 tests)
-- **Integration tests** that exercise the CLI against fixture files (7 tests)
+- **Unit tests** for each language analyzer and the cognitive metrics module (46 tests)
+- **Integration tests** that exercise the CLI against fixture files (9 tests)
 
 ## Architecture
 
