@@ -136,7 +136,7 @@ pub fn count_decisions(
 
 pub mod c;
 pub mod javascript;
-pub mod javascript_like;
+mod javascript_like;
 pub mod python;
 pub mod rust;
 pub mod typescript;

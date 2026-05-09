@@ -18,7 +18,7 @@ impl LanguageAnalyzer for TypeScriptAnalyzer {
 
     fn parser(&self) -> Result<Parser, String> {
         let mut parser = Parser::new();
-        let language: tree_sitter::Language = tree_sitter_typescript::LANGUAGE_TYPESCRIPT.into();
+        let language: tree_sitter::Language = tree_sitter_typescript::LANGUAGE_TSX.into();
         parser.set_language(&language).map_err(|e| format!("{e:?}"))?;
         Ok(parser)
     }
