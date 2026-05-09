@@ -126,8 +126,8 @@ impl FileResult {
         total_lines: usize,
         functions: Vec<FunctionComplexity>,
         acc: &FileResultAccumulator,
-        count: usize,
     ) -> Self {
+        let count = functions.len();
         let n = count as f64;
         Self {
             path: path.to_path_buf(),
@@ -167,7 +167,7 @@ impl FileResult {
             acc.add(f);
         }
 
-        Self::from_accumulator(path, total_lines, functions, &acc, count)
+        Self::from_accumulator(path, total_lines, functions, &acc)
     }
 }
 
@@ -260,10 +260,10 @@ impl SummaryAccumulator {
 }
 
 impl SummaryStatistics {
-    fn from_accumulator(acc: SummaryAccumulator) -> Self {
+    fn from_accumulator(acc: SummaryAccumulator, files_analyzed: usize) -> Self {
         let n = acc.total_functions as f64;
         Self {
-            files_analyzed: 0, // populated by caller
+            files_analyzed,
             total_functions: acc.total_functions,
             total_lines: acc.total_lines,
             total_complexity: acc.total_complexity,
@@ -293,9 +293,7 @@ impl SummaryStatistics {
             acc.add_file(file);
         }
 
-        let mut stats = SummaryStatistics::from_accumulator(acc);
-        stats.files_analyzed = total_files;
-        stats
+        SummaryStatistics::from_accumulator(acc, total_files)
     }
 }
 
