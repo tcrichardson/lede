@@ -1,41 +1,10 @@
+use crate::language::javascript_like::{
+    extract_name, CLOSURE_KINDS, DECISION_KINDS, FUNCTION_KINDS, OPERAND_KINDS, OPERATOR_KINDS,
+};
 use crate::language::{LanguageAnalyzer, LanguageConfig};
-use tree_sitter::{Node, Parser};
+use tree_sitter::Parser;
 
 pub struct JavaScriptAnalyzer;
-
-const FUNCTION_KINDS: &[&str] = &[
-    "function_declaration",
-    "function_expression",
-    "arrow_function",
-    "method_definition",
-];
-const CLOSURE_KINDS: &[&str] = &[
-    "function_expression",
-    "arrow_function",
-];
-const DECISION_KINDS: &[&str] = &[
-    "if_statement",
-    "for_statement",
-    "while_statement",
-    "do_statement",
-    "catch_clause",
-    "ternary_expression",
-    "switch_case",
-    "switch_default",
-];
-const OPERATOR_KINDS: &[&str] = &[
-    "+", "-", "*", "/", "%", "**",
-    "==", "!=", "===", "!==", "<", ">", "<=", ">=",
-    "&&", "||", "!", "??", "?.",
-    "=", "+=", "-=" , "*=", "/=", "%=", "**=",
-    "&", "|", "^", "<<", ">>", ">>>", "~",
-    "++", "--",
-    ".", ":", "=>",
-    "return_statement", "yield", "await",
-];
-const OPERAND_KINDS: &[&str] = &[
-    "identifier", "number", "string", "true", "false", "null", "undefined",
-];
 
 impl LanguageAnalyzer for JavaScriptAnalyzer {
     fn can_analyze(&self, path: &std::path::Path) -> bool {
@@ -65,19 +34,6 @@ impl LanguageAnalyzer for JavaScriptAnalyzer {
             skip_childless_nodes: false,
         }
     }
-}
-
-fn extract_name(node: Node, source: &str) -> String {
-    if node.kind() == "arrow_function" || node.kind() == "function_expression" {
-        return format!("<closure>@line {}", node.start_position().row + 1);
-    }
-    let mut cursor = node.walk();
-    for child in node.children(&mut cursor) {
-        if child.kind() == "identifier" || child.kind() == "property_identifier" {
-            return source[child.start_byte()..child.end_byte()].to_string();
-        }
-    }
-    format!("<anon>@line {}", node.start_position().row + 1)
 }
 
 #[cfg(test)]
