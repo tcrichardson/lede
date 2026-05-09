@@ -65,7 +65,93 @@ impl Default for FileResult {
     }
 }
 
+struct FileResultAccumulator {
+    total_complexity: u32,
+    total_function_lines: usize,
+    max_complexity: u32,
+    max_function_lines: usize,
+    max_nesting_depth: u32,
+    sum_nesting: f64,
+    max_halstead_volume: f64,
+    sum_halstead_volume: f64,
+    max_halstead_difficulty: f64,
+    sum_halstead_difficulty: f64,
+    max_halstead_effort: f64,
+    sum_halstead_effort: f64,
+    max_halstead_time: f64,
+    sum_halstead_time: f64,
+}
+
+impl FileResultAccumulator {
+    fn new() -> Self {
+        Self {
+            total_complexity: 0,
+            total_function_lines: 0,
+            max_complexity: 0,
+            max_function_lines: 0,
+            max_nesting_depth: 0,
+            sum_nesting: 0.0,
+            max_halstead_volume: 0.0,
+            sum_halstead_volume: 0.0,
+            max_halstead_difficulty: 0.0,
+            sum_halstead_difficulty: 0.0,
+            max_halstead_effort: 0.0,
+            sum_halstead_effort: 0.0,
+            max_halstead_time: 0.0,
+            sum_halstead_time: 0.0,
+        }
+    }
+
+    fn add(&mut self, f: &FunctionComplexity) {
+        self.total_complexity += f.complexity;
+        self.total_function_lines += f.lines;
+        self.max_complexity = self.max_complexity.max(f.complexity);
+        self.max_function_lines = self.max_function_lines.max(f.lines);
+        self.max_nesting_depth = self.max_nesting_depth.max(f.nesting_depth);
+        self.sum_nesting += f.nesting_depth as f64;
+        self.max_halstead_volume = self.max_halstead_volume.max(f.halstead_volume);
+        self.sum_halstead_volume += f.halstead_volume;
+        self.max_halstead_difficulty = self.max_halstead_difficulty.max(f.halstead_difficulty);
+        self.sum_halstead_difficulty += f.halstead_difficulty;
+        self.max_halstead_effort = self.max_halstead_effort.max(f.halstead_effort);
+        self.sum_halstead_effort += f.halstead_effort;
+        self.max_halstead_time = self.max_halstead_time.max(f.halstead_time);
+        self.sum_halstead_time += f.halstead_time;
+    }
+}
+
 impl FileResult {
+    fn from_accumulator(
+        path: &Path,
+        total_lines: usize,
+        functions: Vec<FunctionComplexity>,
+        acc: &FileResultAccumulator,
+        count: usize,
+    ) -> Self {
+        let n = count as f64;
+        Self {
+            path: path.to_path_buf(),
+            total_complexity: acc.total_complexity,
+            total_lines,
+            function_count: count,
+            error: None,
+            max_nesting_depth: acc.max_nesting_depth,
+            avg_nesting_depth: acc.sum_nesting / n,
+            max_complexity: acc.max_complexity,
+            max_function_lines: acc.max_function_lines,
+            total_function_lines: acc.total_function_lines,
+            max_halstead_volume: acc.max_halstead_volume,
+            avg_halstead_volume: acc.sum_halstead_volume / n,
+            max_halstead_difficulty: acc.max_halstead_difficulty,
+            avg_halstead_difficulty: acc.sum_halstead_difficulty / n,
+            max_halstead_effort: acc.max_halstead_effort,
+            avg_halstead_effort: acc.sum_halstead_effort / n,
+            max_halstead_time: acc.max_halstead_time,
+            avg_halstead_time: acc.sum_halstead_time / n,
+            functions,
+        }
+    }
+
     pub fn from_functions(path: &Path, total_lines: usize, functions: Vec<FunctionComplexity>) -> Self {
         let count = functions.len();
         if count == 0 {
@@ -76,60 +162,12 @@ impl FileResult {
             };
         }
 
-        let mut total_complexity: u32 = 0;
-        let mut total_function_lines: usize = 0;
-        let mut max_complexity: u32 = 0;
-        let mut max_function_lines: usize = 0;
-        let mut max_nesting_depth: u32 = 0;
-        let mut sum_nesting: f64 = 0.0;
-        let mut max_halstead_volume: f64 = 0.0;
-        let mut sum_halstead_volume: f64 = 0.0;
-        let mut max_halstead_difficulty: f64 = 0.0;
-        let mut sum_halstead_difficulty: f64 = 0.0;
-        let mut max_halstead_effort: f64 = 0.0;
-        let mut sum_halstead_effort: f64 = 0.0;
-        let mut max_halstead_time: f64 = 0.0;
-        let mut sum_halstead_time: f64 = 0.0;
-
+        let mut acc = FileResultAccumulator::new();
         for f in &functions {
-            total_complexity += f.complexity;
-            total_function_lines += f.lines;
-            max_complexity = max_complexity.max(f.complexity);
-            max_function_lines = max_function_lines.max(f.lines);
-            max_nesting_depth = max_nesting_depth.max(f.nesting_depth);
-            sum_nesting += f.nesting_depth as f64;
-            max_halstead_volume = max_halstead_volume.max(f.halstead_volume);
-            sum_halstead_volume += f.halstead_volume;
-            max_halstead_difficulty = max_halstead_difficulty.max(f.halstead_difficulty);
-            sum_halstead_difficulty += f.halstead_difficulty;
-            max_halstead_effort = max_halstead_effort.max(f.halstead_effort);
-            sum_halstead_effort += f.halstead_effort;
-            max_halstead_time = max_halstead_time.max(f.halstead_time);
-            sum_halstead_time += f.halstead_time;
+            acc.add(f);
         }
 
-        let n = count as f64;
-        Self {
-            path: path.to_path_buf(),
-            total_complexity,
-            total_lines,
-            function_count: count,
-            error: None,
-            max_nesting_depth,
-            avg_nesting_depth: sum_nesting / n,
-            max_complexity,
-            max_function_lines,
-            total_function_lines,
-            max_halstead_volume,
-            avg_halstead_volume: sum_halstead_volume / n,
-            max_halstead_difficulty,
-            avg_halstead_difficulty: sum_halstead_difficulty / n,
-            max_halstead_effort,
-            avg_halstead_effort: sum_halstead_effort / n,
-            max_halstead_time,
-            avg_halstead_time: sum_halstead_time / n,
-            functions,
-        }
+        Self::from_accumulator(path, total_lines, functions, &acc, count)
     }
 }
 
