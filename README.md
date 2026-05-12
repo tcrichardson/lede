@@ -20,7 +20,7 @@ A fast CLI tool that computes cyclomatic code complexity and Halstead metrics fo
 Build from source with Cargo:
 
 ```bash
-git clone <repo-url>
+git clone https://github.com/tcrichardson/lede
 cd lede
 cargo build --release
 ```
