@@ -1,7 +1,7 @@
 use std::process::Command;
-use rubik::output::OutputFormatter;
+use lede::output::OutputFormatter;
 
-fn rubik() -> Command {
+fn lede() -> Command {
     let mut cmd = Command::new("cargo");
     cmd.arg("run").arg("--");
     cmd
@@ -9,10 +9,10 @@ fn rubik() -> Command {
 
 #[test]
 fn test_rust_fixture_pretty() {
-    let output = rubik()
+    let output = lede()
         .arg("tests/fixtures/rust_sample.rs")
         .output()
-        .expect("failed to run rubik");
+        .expect("failed to run lede");
     let stdout = String::from_utf8_lossy(&output.stdout);
     assert!(stdout.contains("simple"));
     assert!(stdout.contains("with_if"));
@@ -25,11 +25,11 @@ fn test_rust_fixture_pretty() {
 
 #[test]
 fn test_rust_fixture_include_closures() {
-    let output = rubik()
+    let output = lede()
         .arg("tests/fixtures/rust_sample.rs")
         .arg("--include-closures")
         .output()
-        .expect("failed to run rubik");
+        .expect("failed to run lede");
     let stdout = String::from_utf8_lossy(&output.stdout);
     assert!(stdout.contains("simple"));
     assert!(stdout.contains("nested"));
@@ -38,14 +38,14 @@ fn test_rust_fixture_include_closures() {
 
 #[test]
 fn test_python_fixture_json() {
-    let output = rubik()
+    let output = lede()
         .arg("tests/fixtures/python_sample.py")
         .arg("-f")
         .arg("json")
         .output()
-        .expect("failed to run rubik");
+        .expect("failed to run lede");
     let stdout = String::from_utf8_lossy(&output.stdout);
-    let parsed: rubik::AnalysisOutput = serde_json::from_str(&stdout).expect("invalid JSON");
+    let parsed: lede::AnalysisOutput = serde_json::from_str(&stdout).expect("invalid JSON");
     assert_eq!(parsed.files.len(), 1);
     assert_eq!(parsed.summary.files_analyzed, 1);
     let file = &parsed.files[0];
@@ -64,14 +64,14 @@ fn test_python_fixture_json() {
 
 #[test]
 fn test_js_fixture_json() {
-    let output = rubik()
+    let output = lede()
         .arg("tests/fixtures/js_sample.js")
         .arg("--format")
         .arg("json")
         .output()
-        .expect("failed to run rubik");
+        .expect("failed to run lede");
     let stdout = String::from_utf8_lossy(&output.stdout);
-    let parsed: rubik::AnalysisOutput = serde_json::from_str(&stdout).expect("invalid JSON");
+    let parsed: lede::AnalysisOutput = serde_json::from_str(&stdout).expect("invalid JSON");
     assert_eq!(parsed.files.len(), 1);
     assert_eq!(parsed.summary.files_analyzed, 1);
     let file = &parsed.files[0];
@@ -88,14 +88,14 @@ fn test_js_fixture_json() {
 
 #[test]
 fn test_c_fixture_json() {
-    let output = rubik()
+    let output = lede()
         .arg("tests/fixtures/c_sample.c")
         .arg("--format")
         .arg("json")
         .output()
-        .expect("failed to run rubik");
+        .expect("failed to run lede");
     let stdout = String::from_utf8_lossy(&output.stdout);
-    let parsed: rubik::AnalysisOutput = serde_json::from_str(&stdout).expect("invalid JSON");
+    let parsed: lede::AnalysisOutput = serde_json::from_str(&stdout).expect("invalid JSON");
     assert_eq!(parsed.files.len(), 1);
     assert_eq!(parsed.summary.files_analyzed, 1);
     let file = &parsed.files[0];
@@ -114,14 +114,14 @@ fn test_c_fixture_json() {
 
 #[test]
 fn test_typescript_fixture_json() {
-    let output = rubik()
+    let output = lede()
         .arg("tests/fixtures/typescript_sample.ts")
         .arg("--format")
         .arg("json")
         .output()
-        .expect("failed to run rubik");
+        .expect("failed to run lede");
     let stdout = String::from_utf8_lossy(&output.stdout);
-    let parsed: rubik::AnalysisOutput = serde_json::from_str(&stdout).expect("invalid JSON");
+    let parsed: lede::AnalysisOutput = serde_json::from_str(&stdout).expect("invalid JSON");
     assert_eq!(parsed.files.len(), 1);
     assert_eq!(parsed.summary.files_analyzed, 1);
     let file = &parsed.files[0];
@@ -140,10 +140,10 @@ fn test_typescript_fixture_json() {
 
 #[test]
 fn test_invalid_file_skips() {
-    let output = rubik()
+    let output = lede()
         .arg("tests/fixtures/invalid.py")
         .output()
-        .expect("failed to run rubik");
+        .expect("failed to run lede");
     let stderr = String::from_utf8_lossy(&output.stderr);
     assert!(stderr.contains("Error parsing") || stderr.contains("Failed to parse"));
     assert!(output.status.success());
@@ -151,14 +151,14 @@ fn test_invalid_file_skips() {
 
 #[test]
 fn test_directory_scan() {
-    let output = rubik()
+    let output = lede()
         .arg("tests/fixtures")
         .arg("-f")
         .arg("json")
         .output()
-        .expect("failed to run rubik");
+        .expect("failed to run lede");
     let stdout = String::from_utf8_lossy(&output.stdout);
-    let parsed: rubik::AnalysisOutput = serde_json::from_str(&stdout).expect("invalid JSON");
+    let parsed: lede::AnalysisOutput = serde_json::from_str(&stdout).expect("invalid JSON");
     let paths: Vec<String> = parsed.files.iter().map(|r| r.path.to_string_lossy().to_string()).collect();
     assert!(paths.iter().any(|p| p.contains("rust_sample.rs")));
     assert!(paths.iter().any(|p| p.contains("python_sample.py")));
@@ -170,13 +170,13 @@ fn test_directory_scan() {
 
 #[test]
 fn test_duplicate_clusters_in_output() {
-    let results = rubik::analyze_path(
+    let results = lede::analyze_path(
         std::path::Path::new("tests/fixtures/duplicates/"),
         false,
     )
     .expect("failed to analyze duplicates directory");
 
-    let clusters = rubik::duplicates::compute_duplicates(&results);
+    let clusters = lede::duplicates::compute_duplicates(&results);
 
     assert!(!clusters.is_empty(), "expected at least one duplicate cluster");
 
@@ -192,7 +192,7 @@ fn test_duplicate_clusters_in_output() {
     );
 
     // Also verify markdown output contains the duplication section
-    let formatter = rubik::output::markdown::MarkdownFormatter;
+    let formatter = lede::output::markdown::MarkdownFormatter;
     let output = formatter.format(&results, &clusters);
     assert!(
         output.contains("Structural Duplication Candidates"),

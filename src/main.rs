@@ -1,9 +1,9 @@
 use clap::Parser;
-use rubik::{analyze_path, output};
+use lede::{analyze_path, output};
 use std::process;
 
 #[derive(Parser)]
-#[command(name = "rubik", version)]
+#[command(name = "lede", version)]
 struct Args {
     /// Path to a file or directory to analyze
     path: std::path::PathBuf,
@@ -34,7 +34,7 @@ fn main() {
         }
     }
 
-    let clusters = rubik::duplicates::compute_duplicates(&results);
+    let clusters = lede::duplicates::compute_duplicates(&results);
     let formatter = output::get_formatter(&args.format);
     println!("{}", formatter.format(&results, &clusters));
 }

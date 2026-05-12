@@ -1,4 +1,4 @@
-# Rubik
+# Lede
 
 A fast CLI tool that computes cyclomatic code complexity and Halstead metrics for Rust, Python, JavaScript, and C source files. It reports complexity and cognitive metrics per function and per file. By default, closures and anonymous functions are excluded from analysis so they don't skew aggregate metrics — you can opt to include them with `--include-closures`.
 
@@ -21,42 +21,42 @@ Build from source with Cargo:
 
 ```bash
 git clone <repo-url>
-cd rubik
+cd lede
 cargo build --release
 ```
 
-The binary will be available at `target/release/rubik`.
+The binary will be available at `target/release/lede`.
 
 ## Usage
 
 Analyze a single file:
 
 ```bash
-rubik src/main.rs
+lede src/main.rs
 ```
 
 Analyze an entire directory:
 
 ```bash
-rubik src/
+lede src/
 ```
 
 Output as JSON:
 
 ```bash
-rubik src/ -f json
+lede src/ -f json
 ```
 
 Include closures and lambdas in the analysis:
 
 ```bash
-rubik src/ --include-closures
+lede src/ --include-closures
 ```
 
 ### CLI Options
 
 ```
-Usage: rubik [OPTIONS] <PATH>
+Usage: lede [OPTIONS] <PATH>
 
 Arguments:
   <PATH>  Path to a file or directory to analyze
@@ -244,7 +244,7 @@ The suite includes:
 
 ## Architecture
 
-Rubik uses [Tree-sitter](https://tree-sitter.github.io/tree-sitter/) to parse source code into ASTs. Each language has a dedicated analyzer that walks the AST to find function boundaries and count decision points. A shared `cognitive` module computes nesting depth and Halstead metrics for every function. A shared dispatcher routes files to the correct analyzer based on extension.
+Lede uses [Tree-sitter](https://tree-sitter.github.io/tree-sitter/) to parse source code into ASTs. Each language has a dedicated analyzer that walks the AST to find function boundaries and count decision points. A shared `cognitive` module computes nesting depth and Halstead metrics for every function. A shared dispatcher routes files to the correct analyzer based on extension.
 
 ## License
 
